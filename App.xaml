@@ -1,0 +1,26 @@
+﻿<Application x:Class="NimeVault.App"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:NimeVault.Converters"
+             StartupUri="Views/MainWindow.xaml">
+    <Application.Resources>
+        <ResourceDictionary>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Resources/Colors.xaml"/>
+                <ResourceDictionary Source="Resources/Themes/LightTheme.xaml"/>
+                <ResourceDictionary Source="Resources/Styles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
+
+            <!-- Global Converters -->
+            <conv:BoolToVisibilityConverter x:Key="BoolToVisibility"/>
+            <conv:InverseBoolToVisibilityConverter x:Key="InverseBoolToVisibility"/>
+            <conv:StringToVisibilityConverter x:Key="StringToVisibility"/>
+            <conv:RatingToStarsConverter x:Key="RatingToStars"/>
+            <conv:GenreListToStringConverter x:Key="GenreListToString"/>
+            <conv:DownloadStatusToColorConverter x:Key="DownloadStatusToColor"/>
+            <conv:DownloadStatusToTextConverter x:Key="DownloadStatusToText"/>
+            <conv:NullToVisibilityConverter x:Key="NullToVisibility"/>
+            <conv:BoolToActiveNavConverter x:Key="BoolToActiveNav"/>
+        </ResourceDictionary>
+    </Application.Resources>
+</Application>

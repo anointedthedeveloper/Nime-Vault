@@ -1,0 +1,134 @@
+<UserControl x:Class="NimeVault.Views.DownloadCard"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:models="clr-namespace:NimeVault.Models">
+
+    <Border Style="{StaticResource CardStyle}" Padding="16">
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="56"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+            </Grid.ColumnDefinitions>
+
+            <!-- Poster -->
+            <Border Grid.Column="0" Width="52" Height="72" CornerRadius="6" ClipToBounds="True">
+                <Image Source="{Binding PosterUrl}" Stretch="UniformToFill"/>
+            </Border>
+
+            <!-- Details -->
+            <StackPanel Grid.Column="1" Margin="16,0,16,0">
+
+                <!-- Title + Language Badge -->
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                    <TextBlock Text="{Binding AnimeTitle}" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               TextTrimming="CharacterEllipsis" MaxWidth="300"/>
+                    <Border CornerRadius="4" Padding="5,2" Margin="8,0,0,0"
+                            Background="#EDE9FE">
+                        <TextBlock Text="{Binding Language}" FontSize="10" FontWeight="Bold" Foreground="#7C3AED"/>
+                    </Border>
+                </StackPanel>
+
+                <TextBlock Text="{Binding EpisodeNumber, StringFormat='Episode {0}'}"
+                           Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,0,0,6"/>
+
+                <!-- Status Text -->
+                <TextBlock Text="{Binding Status, Converter={StaticResource DownloadStatusToText}}"
+                           Foreground="{Binding Status, Converter={StaticResource DownloadStatusToColor}}"
+                           FontSize="11" FontWeight="SemiBold" Margin="0,0,0,6"/>
+
+                <!-- Progress Bar (only when downloading/paused) -->
+                <Grid Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibility}}">
+                    <ProgressBar Style="{StaticResource DownloadProgress}"
+                                 Value="{Binding Progress}"
+                                 Maximum="100"/>
+                </Grid>
+                <Grid Visibility="{Binding IsPaused, Converter={StaticResource BoolToVisibility}}">
+                    <ProgressBar Style="{StaticResource DownloadProgress}"
+                                 Value="{Binding Progress}"
+                                 Maximum="100"
+                                 Foreground="{StaticResource WarningBrush}"/>
+                </Grid>
+
+                <!-- Stats row -->
+                <StackPanel Orientation="Horizontal" Margin="0,6,0,0">
+                    <!-- Percent -->
+                    <TextBlock Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibility}}"
+                               Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,0,16,0">
+                        <Run Text="{Binding DownloadedText}"/>
+                        <Run Text=" / "/>
+                        <Run Text="{Binding TotalText}"/>
+                    </TextBlock>
+                    <!-- Speed -->
+                    <TextBlock Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibility}}"
+                               Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,0,16,0"
+                               Text="{Binding SpeedText}"/>
+                    <!-- ETA -->
+                    <TextBlock Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibility}}"
+                               Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11">
+                        <Run Text="ETA "/>
+                        <Run Text="{Binding EtaText}"/>
+                    </TextBlock>
+
+                    <!-- Paused stats -->
+                    <TextBlock Visibility="{Binding IsPaused, Converter={StaticResource BoolToVisibility}}"
+                               Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11">
+                        <Run Text="{Binding ProgressText}"/>
+                        <Run Text=" · Paused"/>
+                    </TextBlock>
+
+                    <!-- Error -->
+                    <TextBlock Visibility="{Binding IsFailed, Converter={StaticResource BoolToVisibility}}"
+                               Foreground="{StaticResource ErrorBrush}" FontSize="11"
+                               Text="{Binding ErrorMessage}"/>
+
+                    <!-- Retry count -->
+                    <TextBlock Visibility="{Binding IsRetrying, Converter={StaticResource BoolToVisibility}}"
+                               Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11">
+                        <Run Text="Retry attempt "/>
+                        <Run Text="{Binding RetryCount}"/>
+                    </TextBlock>
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Action Buttons -->
+            <StackPanel Grid.Column="2" Orientation="Vertical" VerticalAlignment="Center">
+                <!-- Pause (when downloading) -->
+                <Button Style="{StaticResource SmallButton}"
+                        Background="Transparent"
+                        Foreground="{DynamicResource TextSecondaryBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1"
+                        Command="{Binding PauseCommand}"
+                        Visibility="{Binding IsDownloading, Converter={StaticResource BoolToVisibility}}"
+                        Margin="0,0,0,6">
+                    <TextBlock Text="⏸ Pause" FontSize="11"/>
+                </Button>
+
+                <!-- Resume (when paused) -->
+                <Button Style="{StaticResource SmallButton}"
+                        Command="{Binding ResumeCommand}"
+                        Visibility="{Binding IsPaused, Converter={StaticResource BoolToVisibility}}"
+                        Margin="0,0,0,6">
+                    <TextBlock Text="▶ Resume" FontSize="11"/>
+                </Button>
+
+                <!-- Retry (when failed) -->
+                <Button Style="{StaticResource SmallButton}"
+                        Command="{Binding RetryCommand}"
+                        Visibility="{Binding IsFailed, Converter={StaticResource BoolToVisibility}}"
+                        Margin="0,0,0,6">
+                    <TextBlock Text="↺ Retry" FontSize="11"/>
+                </Button>
+
+                <!-- Cancel -->
+                <Button Style="{StaticResource DangerButton}"
+                        Command="{Binding CancelCommand}"
+                        Visibility="{Binding IsCompleted, Converter={StaticResource InverseBoolToVisibility}}">
+                    <TextBlock Text="✕ Cancel" FontSize="11"/>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</UserControl>

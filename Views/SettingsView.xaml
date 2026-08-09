@@ -1,0 +1,294 @@
+<UserControl x:Class="NimeVault.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             Background="{DynamicResource BackgroundPrimaryBrush}">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel Margin="40,32,40,40" MaxWidth="760">
+
+            <!-- Header -->
+            <Grid Margin="0,0,0,32">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Text="Settings" Style="{StaticResource PageTitle}"/>
+                <Button Grid.Column="1" Style="{StaticResource PrimaryButton}"
+                        Command="{Binding SaveCommand}" Padding="20,9">
+                    <TextBlock Text="Save Changes" FontSize="13"/>
+                </Button>
+            </Grid>
+
+            <!-- General -->
+            <Border Style="{StaticResource CardStyle}" Padding="24" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="General" FontSize="16" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,20"/>
+
+                    <CheckBox Content="Start with Windows" IsChecked="{Binding StartWithWindows}" Margin="0,0,0,12"/>
+                    <CheckBox Content="Minimize to system tray" IsChecked="{Binding MinimizeToTray}" Margin="0,0,0,12"/>
+                    <CheckBox Content="Confirm before deleting downloads" IsChecked="{Binding ConfirmBeforeDelete}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Download Location -->
+            <Border Style="{StaticResource CardStyle}" Padding="24" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="Download Location" FontSize="16" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,20"/>
+
+                    <TextBlock Text="Save downloads to:" FontSize="13"
+                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+
+                        <Border Grid.Column="0" BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1" CornerRadius="8,0,0,8"
+                                Background="{DynamicResource InputBackgroundBrush}"
+                                Padding="14,10">
+                            <TextBlock Text="{Binding DownloadLocation}"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       FontSize="13" TextTrimming="CharacterEllipsis"
+                                       VerticalAlignment="Center"/>
+                        </Border>
+
+                        <Button Grid.Column="1" Style="{StaticResource SecondaryButton}"
+                                Command="{Binding BrowseDownloadLocationCommand}"
+                                Padding="16,10">
+                            <Button.Template>
+                                <ControlTemplate TargetType="Button">
+                                    <Border Background="{TemplateBinding Background}"
+                                            BorderBrush="{DynamicResource BorderBrush}"
+                                            BorderThickness="0,1,1,1"
+                                            CornerRadius="0,8,8,0"
+                                            Padding="{TemplateBinding Padding}">
+                                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                    </Border>
+                                </ControlTemplate>
+                            </Button.Template>
+                            <TextBlock Text="Browse" FontSize="13"/>
+                        </Button>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- Download Settings -->
+            <Border Style="{StaticResource CardStyle}" Padding="24" Margin="0,0,0,20">
+                <StackPanel>
+                    <TextBlock Text="Download Settings" FontSize="16" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,20"/>
+
+                    <!-- Max Simultaneous -->
+                    <Grid Margin="0,0,0,16">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="Maximum simultaneous downloads" FontSize="13"
+                                       Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"/>
+                            <TextBlock Text="How many files to download at the same time" FontSize="12"
+                                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,3,0,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Style="{StaticResource SecondaryButton}" Padding="10,6"
+                                    Click="DecrementSimultaneous">
+                                <TextBlock Text="−" FontSize="14"/>
+                            </Button>
+                            <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1"
+                                    Padding="20,6" Background="{DynamicResource InputBackgroundBrush}">
+                                <TextBlock Text="{Binding MaxSimultaneousDownloads}"
+                                           FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           HorizontalAlignment="Center" MinWidth="20" TextAlignment="Center"/>
+                            </Border>
+                            <Button Style="{StaticResource SecondaryButton}" Padding="10,6"
+                                    Click="IncrementSimultaneous">
+                                <TextBlock Text="+" FontSize="14"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <CheckBox Content="Automatically start queued downloads" IsChecked="{Binding AutoStartQueuedDownloads}" Margin="0,0,0,12"/>
+                    <CheckBox Content="Retry failed downloads" IsChecked="{Binding RetryFailedDownloads}" Margin="0,0,0,12"/>
+
+                    <!-- Max Retry -->
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBlock Grid.Column="0" Text="Maximum retry attempts"
+                                   FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
+                                   VerticalAlignment="Center"/>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Style="{StaticResource SecondaryButton}" Padding="10,6" Click="DecrementRetry">
+                                <TextBlock Text="−" FontSize="14"/>
+                            </Button>
+                            <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1"
+                                    Padding="20,6" Background="{DynamicResource InputBackgroundBrush}">
+                                <TextBlock Text="{Binding MaxRetryAttempts}"
+                                           FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           HorizontalAlignment="Center" MinWidth="20" TextAlignment="Center"/>
+                            </Border>
+                            <Button Style="{StaticResource SecondaryButton}" Padding="10,6" Click="IncrementRetry">
+                                <TextBlock Text="+" FontSize="14"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <CheckBox Content="Resume interrupted downloads" IsChecked="{Binding ResumeInterruptedDownloads}"/>
+                </StackPanel>
+            </Border>
+
+            <!-- Appearance -->
+            <Border Style="{StaticResource CardStyle}" Padding="24">
+                <StackPanel>
+                    <TextBlock Text="Appearance" FontSize="16" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,20"/>
+
+                    <TextBlock Text="Theme" FontSize="13" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+
+                    <StackPanel Orientation="Horizontal">
+                        <!-- Light -->
+                        <Border x:Name="LightThemeCard"
+                                Width="140" Margin="0,0,12,0"
+                                BorderThickness="2" CornerRadius="10" Cursor="Hand"
+                                Padding="16,14"
+                                MouseLeftButtonUp="LightThemeSelected">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+                                    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsLightTheme}" Value="True">
+                                            <Setter Property="BorderBrush" Value="{StaticResource BrandPrimaryBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel>
+                                <!-- Preview -->
+                                <Border Height="60" CornerRadius="6" Background="#F8FAFC" Margin="0,0,0,10">
+                                    <StackPanel Margin="8">
+                                        <Border Height="8" Width="60" CornerRadius="2" Background="#E2E8F0" HorizontalAlignment="Left" Margin="0,0,0,4"/>
+                                        <Border Height="6" Width="40" CornerRadius="2" Background="#E2E8F0" HorizontalAlignment="Left"/>
+                                    </StackPanel>
+                                </Border>
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Width="16" Height="16" Margin="0,0,8,0">
+                                        <Ellipse.Style>
+                                            <Style TargetType="Ellipse">
+                                                <Setter Property="Fill" Value="{DynamicResource BorderBrush}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsLightTheme}" Value="True">
+                                                        <Setter Property="Fill" Value="{StaticResource BrandPrimaryBrush}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Ellipse.Style>
+                                    </Ellipse>
+                                    <TextBlock Text="Light" FontSize="13" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Dark -->
+                        <Border Width="140" Margin="0,0,12,0"
+                                BorderThickness="2" CornerRadius="10" Cursor="Hand"
+                                Padding="16,14"
+                                MouseLeftButtonUp="DarkThemeSelected">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+                                    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsDarkTheme}" Value="True">
+                                            <Setter Property="BorderBrush" Value="{StaticResource BrandPrimaryBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel>
+                                <Border Height="60" CornerRadius="6" Background="#1E2230" Margin="0,0,0,10">
+                                    <StackPanel Margin="8">
+                                        <Border Height="8" Width="60" CornerRadius="2" Background="#2A3040" HorizontalAlignment="Left" Margin="0,0,0,4"/>
+                                        <Border Height="6" Width="40" CornerRadius="2" Background="#2A3040" HorizontalAlignment="Left"/>
+                                    </StackPanel>
+                                </Border>
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Width="16" Height="16" Margin="0,0,8,0">
+                                        <Ellipse.Style>
+                                            <Style TargetType="Ellipse">
+                                                <Setter Property="Fill" Value="{DynamicResource BorderBrush}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsDarkTheme}" Value="True">
+                                                        <Setter Property="Fill" Value="{StaticResource BrandPrimaryBrush}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Ellipse.Style>
+                                    </Ellipse>
+                                    <TextBlock Text="Dark" FontSize="13" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- System -->
+                        <Border Width="140"
+                                BorderThickness="2" CornerRadius="10" Cursor="Hand"
+                                Padding="16,14"
+                                MouseLeftButtonUp="SystemThemeSelected">
+                            <Border.Style>
+                                <Style TargetType="Border">
+                                    <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}"/>
+                                    <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsSystemTheme}" Value="True">
+                                            <Setter Property="BorderBrush" Value="{StaticResource BrandPrimaryBrush}"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Border.Style>
+                            <StackPanel>
+                                <Border Height="60" CornerRadius="6" Margin="0,0,0,10">
+                                    <Border.Background>
+                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                            <GradientStop Color="#F8FAFC" Offset="0.5"/>
+                                            <GradientStop Color="#1E2230" Offset="0.5"/>
+                                        </LinearGradientBrush>
+                                    </Border.Background>
+                                </Border>
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Width="16" Height="16" Margin="0,0,8,0">
+                                        <Ellipse.Style>
+                                            <Style TargetType="Ellipse">
+                                                <Setter Property="Fill" Value="{DynamicResource BorderBrush}"/>
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsSystemTheme}" Value="True">
+                                                        <Setter Property="Fill" Value="{StaticResource BrandPrimaryBrush}"/>
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Ellipse.Style>
+                                    </Ellipse>
+                                    <TextBlock Text="System" FontSize="13" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,16 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Container / Squircle Shell -->
+  <rect width="512" height="512" rx="115" fill="#0D0E15"/>
+  <rect x="4" y="4" width="504" height="504" rx="111" stroke="#7C3AED" stroke-opacity="0.25" stroke-width="8"/>
+
+  <!-- Vault Lock Outer Track -->
+  <circle cx="256" cy="256" r="160" stroke="#7C3AED" stroke-width="16" stroke-opacity="0.2"/>
+  <path d="M 256 96 A 160 160 0 0 1 395 176" stroke="#EC4899" stroke-width="18" stroke-linecap="round"/>
+
+  <!-- Geometric 'N' & Vault Interlock -->
+  <path d="M152 352 V160 L288 352 V160" stroke="#7C3AED" stroke-width="38" stroke-linecap="round" stroke-linejoin="round"/>
+  
+  <!-- Central Security Core -->
+  <circle cx="288" cy="256" r="28" fill="#0D0E15" stroke="#7C3AED" stroke-width="10"/>
+  <circle cx="288" cy="256" r="10" fill="#EC4899"/>
+</svg>

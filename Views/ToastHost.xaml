@@ -1,0 +1,27 @@
+<UserControl x:Class="NimeVault.Views.ToastHost"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <ItemsControl x:Name="ToastList" Width="340">
+        <ItemsControl.ItemTemplate>
+            <DataTemplate>
+                <Border Margin="0,4,0,0"
+                        CornerRadius="8" Padding="14,12"
+                        Background="{Binding Background}"
+                        Effect="{DynamicResource ToastShadow}">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Border Grid.Column="0" Width="6" CornerRadius="3"
+                                Background="{Binding AccentColor}" Margin="0,0,12,0"/>
+                        <TextBlock Grid.Column="1" Text="{Binding Message}"
+                                   Foreground="{Binding Foreground}"
+                                   FontSize="13" FontFamily="Segoe UI"
+                                   TextWrapping="Wrap"/>
+                    </Grid>
+                </Border>
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
+</UserControl>
