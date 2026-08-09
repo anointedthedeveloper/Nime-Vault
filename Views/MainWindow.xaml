@@ -21,6 +21,33 @@
                 BorderThickness="0,0,0,1"
                 Height="56">
             <Grid Margin="24,0">
+                <!-- subtle live indicator (pulsing) -->
+                <Ellipse x:Name="LiveIndicator"
+                         Width="8" Height="8"
+                         HorizontalAlignment="Right"
+                         VerticalAlignment="Center"
+                         Margin="0,0,82,0"
+                         Fill="{DynamicResource TextSecondaryBrush}"
+                         IsHitTestVisible="False">
+                    <Ellipse.RenderTransform>
+                        <ScaleTransform ScaleX="1" ScaleY="1"/>
+                    </Ellipse.RenderTransform>
+                    <Ellipse.Triggers>
+                        <EventTrigger RoutedEvent="Ellipse.Loaded">
+                            <BeginStoryboard>
+                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                     From="0.25" To="0.85" Duration="0:0:1.2"/>
+                                    <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX"
+                                                     From="1" To="1.6" Duration="0:0:1.2"/>
+                                    <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY"
+                                                     From="1" To="1.6" Duration="0:0:1.2"/>
+                                </Storyboard>
+                            </BeginStoryboard>
+                        </EventTrigger>
+                    </Ellipse.Triggers>
+                </Ellipse>
+
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
