@@ -4,7 +4,7 @@
              Background="{DynamicResource BackgroundPrimaryBrush}">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="40,32,40,40" MaxWidth="760">
+        <StackPanel Margin="40,32,40,48" MaxWidth="780">
 
             <!-- Header -->
             <Grid Margin="0,0,0,32">
@@ -14,31 +14,39 @@
                 </Grid.ColumnDefinitions>
                 <TextBlock Text="Settings" Style="{StaticResource PageTitle}"/>
                 <Button Grid.Column="1" Style="{StaticResource PrimaryButton}"
-                        Command="{Binding SaveCommand}" Padding="20,9">
-                    <TextBlock Text="Save Changes" FontSize="13"/>
+                        Command="{Binding SaveCommand}" Padding="22,10">
+                    <TextBlock Text="Save Changes" FontSize="13" FontWeight="SemiBold"/>
                 </Button>
             </Grid>
 
-            <!-- General -->
-            <Border Style="{StaticResource CardStyle}" Padding="24" Margin="0,0,0,20">
+            <!-- ── General ─────────────────────────────────────────────── -->
+            <Border Style="{StaticResource CardStyle}" Padding="24" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="General" FontSize="16" FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,20"/>
+                    <TextBlock Text="General" FontSize="15" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,18"/>
 
-                    <CheckBox Content="Start with Windows" IsChecked="{Binding StartWithWindows}" Margin="0,0,0,12"/>
-                    <CheckBox Content="Minimize to system tray" IsChecked="{Binding MinimizeToTray}" Margin="0,0,0,12"/>
-                    <CheckBox Content="Confirm before deleting downloads" IsChecked="{Binding ConfirmBeforeDelete}"/>
+                    <CheckBox Content="Start with Windows"
+                              IsChecked="{Binding StartWithWindows}"
+                              Margin="0,0,0,12"/>
+                    <CheckBox Content="Minimize to system tray on close"
+                              IsChecked="{Binding MinimizeToTray}"
+                              Margin="0,0,0,12"/>
+                    <CheckBox Content="Confirm before deleting downloads"
+                              IsChecked="{Binding ConfirmBeforeDelete}"
+                              Margin="0,0,0,12"/>
+                    <CheckBox Content="Show desktop notifications"
+                              IsChecked="{Binding ShowNotifications}"/>
                 </StackPanel>
             </Border>
 
-            <!-- Download Location -->
-            <Border Style="{StaticResource CardStyle}" Padding="24" Margin="0,0,0,20">
+            <!-- ── Download Location ───────────────────────────────────── -->
+            <Border Style="{StaticResource CardStyle}" Padding="24" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="Download Location" FontSize="16" FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,20"/>
-
-                    <TextBlock Text="Save downloads to:" FontSize="13"
-                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,10"/>
+                    <TextBlock Text="Download Location" FontSize="15" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+                    <TextBlock Text="All downloaded files will be saved here."
+                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
+                               Margin="0,0,0,16"/>
 
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -46,121 +54,149 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border Grid.Column="0" BorderBrush="{DynamicResource BorderBrush}"
-                                BorderThickness="1" CornerRadius="8,0,0,8"
+                        <Border Grid.Column="0"
                                 Background="{DynamicResource InputBackgroundBrush}"
-                                Padding="14,10">
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                BorderThickness="1,1,0,1"
+                                CornerRadius="8,0,0,8"
+                                Padding="14,11">
                             <TextBlock Text="{Binding DownloadLocation}"
                                        Foreground="{DynamicResource TextPrimaryBrush}"
-                                       FontSize="13" TextTrimming="CharacterEllipsis"
+                                       FontSize="13"
+                                       TextTrimming="CharacterEllipsis"
                                        VerticalAlignment="Center"/>
                         </Border>
 
-                        <Button Grid.Column="1" Style="{StaticResource SecondaryButton}"
+                        <Button Grid.Column="1"
                                 Command="{Binding BrowseDownloadLocationCommand}"
-                                Padding="16,10">
+                                Padding="18,11"
+                                Cursor="Hand">
                             <Button.Template>
                                 <ControlTemplate TargetType="Button">
-                                    <Border Background="{TemplateBinding Background}"
+                                    <Border x:Name="Bd"
+                                            Background="{DynamicResource CardBackgroundBrush}"
                                             BorderBrush="{DynamicResource BorderBrush}"
-                                            BorderThickness="0,1,1,1"
+                                            BorderThickness="1"
                                             CornerRadius="0,8,8,0"
                                             Padding="{TemplateBinding Padding}">
                                         <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                                     </Border>
+                                    <ControlTemplate.Triggers>
+                                        <Trigger Property="IsMouseOver" Value="True">
+                                            <Setter TargetName="Bd" Property="Background"
+                                                    Value="{DynamicResource HoverBrush}"/>
+                                        </Trigger>
+                                    </ControlTemplate.Triggers>
                                 </ControlTemplate>
                             </Button.Template>
-                            <TextBlock Text="Browse" FontSize="13"/>
+                            <TextBlock Text="Browse" FontSize="13"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"
+                                       FontFamily="Segoe UI"/>
                         </Button>
                     </Grid>
                 </StackPanel>
             </Border>
 
-            <!-- Download Settings -->
-            <Border Style="{StaticResource CardStyle}" Padding="24" Margin="0,0,0,20">
+            <!-- ── Download Settings ───────────────────────────────────── -->
+            <Border Style="{StaticResource CardStyle}" Padding="24" Margin="0,0,0,16">
                 <StackPanel>
-                    <TextBlock Text="Download Settings" FontSize="16" FontWeight="SemiBold"
+                    <TextBlock Text="Download Settings" FontSize="15" FontWeight="SemiBold"
                                Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,20"/>
 
-                    <!-- Max Simultaneous -->
+                    <!-- Max simultaneous -->
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock Text="Maximum simultaneous downloads"
+                                       FontSize="13" FontWeight="SemiBold"
+                                       Foreground="{DynamicResource TextPrimaryBrush}"/>
+                            <TextBlock Text="How many files download at the same time"
+                                       FontSize="12" Foreground="{DynamicResource TextSecondaryBrush}"
+                                       Margin="0,3,0,0"/>
+                        </StackPanel>
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Style="{StaticResource SecondaryButton}"
+                                    Padding="12,6" Click="DecrementSimultaneous">
+                                <TextBlock Text="−" FontSize="15"/>
+                            </Button>
+                            <Border Width="52" BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="0,1"
+                                    Background="{DynamicResource InputBackgroundBrush}">
+                                <TextBlock Text="{Binding MaxSimultaneousDownloads}"
+                                           FontSize="14" FontWeight="SemiBold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}"
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Padding="0,6"/>
+                            </Border>
+                            <Button Style="{StaticResource SecondaryButton}"
+                                    Padding="12,6" Click="IncrementSimultaneous">
+                                <TextBlock Text="+" FontSize="15"/>
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+
+                    <CheckBox Content="Automatically start queued downloads"
+                              IsChecked="{Binding AutoStartQueuedDownloads}"
+                              Margin="0,0,0,12"/>
+                    <CheckBox Content="Retry failed downloads automatically"
+                              IsChecked="{Binding RetryFailedDownloads}"
+                              Margin="0,0,0,20"/>
+
+                    <!-- Max retry -->
                     <Grid Margin="0,0,0,16">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="Maximum simultaneous downloads" FontSize="13"
-                                       Foreground="{DynamicResource TextPrimaryBrush}" FontWeight="SemiBold"/>
-                            <TextBlock Text="How many files to download at the same time" FontSize="12"
-                                       Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,3,0,0"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Button Style="{StaticResource SecondaryButton}" Padding="10,6"
-                                    Click="DecrementSimultaneous">
-                                <TextBlock Text="−" FontSize="14"/>
-                            </Button>
-                            <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1"
-                                    Padding="20,6" Background="{DynamicResource InputBackgroundBrush}">
-                                <TextBlock Text="{Binding MaxSimultaneousDownloads}"
-                                           FontSize="14" FontWeight="SemiBold"
-                                           Foreground="{DynamicResource TextPrimaryBrush}"
-                                           HorizontalAlignment="Center" MinWidth="20" TextAlignment="Center"/>
-                            </Border>
-                            <Button Style="{StaticResource SecondaryButton}" Padding="10,6"
-                                    Click="IncrementSimultaneous">
-                                <TextBlock Text="+" FontSize="14"/>
-                            </Button>
-                        </StackPanel>
-                    </Grid>
-
-                    <CheckBox Content="Automatically start queued downloads" IsChecked="{Binding AutoStartQueuedDownloads}" Margin="0,0,0,12"/>
-                    <CheckBox Content="Retry failed downloads" IsChecked="{Binding RetryFailedDownloads}" Margin="0,0,0,12"/>
-
-                    <!-- Max Retry -->
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*"/>
-                            <ColumnDefinition Width="Auto"/>
-                        </Grid.ColumnDefinitions>
-                        <TextBlock Grid.Column="0" Text="Maximum retry attempts"
-                                   FontSize="13" Foreground="{DynamicResource TextPrimaryBrush}"
+                        <TextBlock Grid.Column="0"
+                                   Text="Maximum retry attempts"
+                                   FontSize="13" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"
                                    VerticalAlignment="Center"/>
                         <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Button Style="{StaticResource SecondaryButton}" Padding="10,6" Click="DecrementRetry">
-                                <TextBlock Text="−" FontSize="14"/>
+                            <Button Style="{StaticResource SecondaryButton}"
+                                    Padding="12,6" Click="DecrementRetry">
+                                <TextBlock Text="−" FontSize="15"/>
                             </Button>
-                            <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="0,1"
-                                    Padding="20,6" Background="{DynamicResource InputBackgroundBrush}">
+                            <Border Width="52" BorderBrush="{DynamicResource BorderBrush}"
+                                    BorderThickness="0,1"
+                                    Background="{DynamicResource InputBackgroundBrush}">
                                 <TextBlock Text="{Binding MaxRetryAttempts}"
                                            FontSize="14" FontWeight="SemiBold"
                                            Foreground="{DynamicResource TextPrimaryBrush}"
-                                           HorizontalAlignment="Center" MinWidth="20" TextAlignment="Center"/>
+                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                           Padding="0,6"/>
                             </Border>
-                            <Button Style="{StaticResource SecondaryButton}" Padding="10,6" Click="IncrementRetry">
-                                <TextBlock Text="+" FontSize="14"/>
+                            <Button Style="{StaticResource SecondaryButton}"
+                                    Padding="12,6" Click="IncrementRetry">
+                                <TextBlock Text="+" FontSize="15"/>
                             </Button>
                         </StackPanel>
                     </Grid>
 
-                    <CheckBox Content="Resume interrupted downloads" IsChecked="{Binding ResumeInterruptedDownloads}"/>
+                    <CheckBox Content="Resume interrupted downloads where they left off"
+                              IsChecked="{Binding ResumeInterruptedDownloads}"/>
                 </StackPanel>
             </Border>
 
-            <!-- Appearance -->
+            <!-- ── Appearance ──────────────────────────────────────────── -->
             <Border Style="{StaticResource CardStyle}" Padding="24">
                 <StackPanel>
-                    <TextBlock Text="Appearance" FontSize="16" FontWeight="SemiBold"
+                    <TextBlock Text="Appearance" FontSize="15" FontWeight="SemiBold"
                                Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,20"/>
 
                     <TextBlock Text="Theme" FontSize="13" FontWeight="SemiBold"
-                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
+                               Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,14"/>
 
                     <StackPanel Orientation="Horizontal">
+
                         <!-- Light -->
-                        <Border x:Name="LightThemeCard"
-                                Width="140" Margin="0,0,12,0"
-                                BorderThickness="2" CornerRadius="10" Cursor="Hand"
-                                Padding="16,14"
+                        <Border Width="148" Margin="0,0,12,0"
+                                BorderThickness="2" CornerRadius="10"
+                                Cursor="Hand" Padding="16,14"
                                 MouseLeftButtonUp="LightThemeSelected">
                             <Border.Style>
                                 <Style TargetType="Border">
@@ -174,15 +210,18 @@
                                 </Style>
                             </Border.Style>
                             <StackPanel>
-                                <!-- Preview -->
-                                <Border Height="60" CornerRadius="6" Background="#F8FAFC" Margin="0,0,0,10">
-                                    <StackPanel Margin="8">
-                                        <Border Height="8" Width="60" CornerRadius="2" Background="#E2E8F0" HorizontalAlignment="Left" Margin="0,0,0,4"/>
-                                        <Border Height="6" Width="40" CornerRadius="2" Background="#E2E8F0" HorizontalAlignment="Left"/>
+                                <Border Height="64" CornerRadius="6" Background="#F8FAFC" Margin="0,0,0,10">
+                                    <StackPanel Margin="10,8">
+                                        <Border Height="8" Width="64" CornerRadius="2" Background="#E2E8F0"
+                                                HorizontalAlignment="Left" Margin="0,0,0,5"/>
+                                        <Border Height="6" Width="44" CornerRadius="2" Background="#E2E8F0"
+                                                HorizontalAlignment="Left" Margin="0,0,0,5"/>
+                                        <Border Height="6" Width="52" CornerRadius="2" Background="#E2E8F0"
+                                                HorizontalAlignment="Left"/>
                                     </StackPanel>
                                 </Border>
-                                <StackPanel Orientation="Horizontal">
-                                    <Ellipse Width="16" Height="16" Margin="0,0,8,0">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Ellipse Width="14" Height="14" Margin="0,0,8,0">
                                         <Ellipse.Style>
                                             <Style TargetType="Ellipse">
                                                 <Setter Property="Fill" Value="{DynamicResource BorderBrush}"/>
@@ -201,9 +240,9 @@
                         </Border>
 
                         <!-- Dark -->
-                        <Border Width="140" Margin="0,0,12,0"
-                                BorderThickness="2" CornerRadius="10" Cursor="Hand"
-                                Padding="16,14"
+                        <Border Width="148" Margin="0,0,12,0"
+                                BorderThickness="2" CornerRadius="10"
+                                Cursor="Hand" Padding="16,14"
                                 MouseLeftButtonUp="DarkThemeSelected">
                             <Border.Style>
                                 <Style TargetType="Border">
@@ -217,14 +256,18 @@
                                 </Style>
                             </Border.Style>
                             <StackPanel>
-                                <Border Height="60" CornerRadius="6" Background="#1E2230" Margin="0,0,0,10">
-                                    <StackPanel Margin="8">
-                                        <Border Height="8" Width="60" CornerRadius="2" Background="#2A3040" HorizontalAlignment="Left" Margin="0,0,0,4"/>
-                                        <Border Height="6" Width="40" CornerRadius="2" Background="#2A3040" HorizontalAlignment="Left"/>
+                                <Border Height="64" CornerRadius="6" Background="#1E2230" Margin="0,0,0,10">
+                                    <StackPanel Margin="10,8">
+                                        <Border Height="8" Width="64" CornerRadius="2" Background="#2A3040"
+                                                HorizontalAlignment="Left" Margin="0,0,0,5"/>
+                                        <Border Height="6" Width="44" CornerRadius="2" Background="#2A3040"
+                                                HorizontalAlignment="Left" Margin="0,0,0,5"/>
+                                        <Border Height="6" Width="52" CornerRadius="2" Background="#2A3040"
+                                                HorizontalAlignment="Left"/>
                                     </StackPanel>
                                 </Border>
-                                <StackPanel Orientation="Horizontal">
-                                    <Ellipse Width="16" Height="16" Margin="0,0,8,0">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Ellipse Width="14" Height="14" Margin="0,0,8,0">
                                         <Ellipse.Style>
                                             <Style TargetType="Ellipse">
                                                 <Setter Property="Fill" Value="{DynamicResource BorderBrush}"/>
@@ -243,9 +286,9 @@
                         </Border>
 
                         <!-- System -->
-                        <Border Width="140"
-                                BorderThickness="2" CornerRadius="10" Cursor="Hand"
-                                Padding="16,14"
+                        <Border Width="148"
+                                BorderThickness="2" CornerRadius="10"
+                                Cursor="Hand" Padding="16,14"
                                 MouseLeftButtonUp="SystemThemeSelected">
                             <Border.Style>
                                 <Style TargetType="Border">
@@ -259,7 +302,7 @@
                                 </Style>
                             </Border.Style>
                             <StackPanel>
-                                <Border Height="60" CornerRadius="6" Margin="0,0,0,10">
+                                <Border Height="64" CornerRadius="6" Margin="0,0,0,10" ClipToBounds="True">
                                     <Border.Background>
                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
                                             <GradientStop Color="#F8FAFC" Offset="0.5"/>
@@ -267,8 +310,8 @@
                                         </LinearGradientBrush>
                                     </Border.Background>
                                 </Border>
-                                <StackPanel Orientation="Horizontal">
-                                    <Ellipse Width="16" Height="16" Margin="0,0,8,0">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Ellipse Width="14" Height="14" Margin="0,0,8,0">
                                         <Ellipse.Style>
                                             <Style TargetType="Ellipse">
                                                 <Setter Property="Fill" Value="{DynamicResource BorderBrush}"/>
@@ -285,7 +328,17 @@
                                 </StackPanel>
                             </StackPanel>
                         </Border>
+
                     </StackPanel>
+
+                    <!-- System theme note -->
+                    <TextBlock Margin="0,14,0,0" FontSize="12"
+                               Foreground="{DynamicResource TextSecondaryBrush}"
+                               Visibility="{Binding IsSystemTheme, Converter={StaticResource BoolToVisibility}}">
+                        <Run Text="System theme follows your Windows appearance setting."/>
+                        <Run Text=" Restart the app to re-detect any system changes."/>
+                    </TextBlock>
+
                 </StackPanel>
             </Border>
 

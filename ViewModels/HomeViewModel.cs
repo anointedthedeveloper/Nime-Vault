@@ -1,3 +1,4 @@
+using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -10,33 +11,35 @@ namespace NimeVault.ViewModels
     {
         private readonly IAnimeSearchService _searchService;
         private readonly IDownloadQueueService _queueService;
-        private readonly INotificationService _notificationService;
+        private readonly INotificationService _notifications;
 
         private Anime? _featuredAnime;
         private bool _isLoading;
 
         public Anime? FeaturedAnime { get => _featuredAnime; set => SetField(ref _featuredAnime, value); }
-        public bool IsLoading { get => _isLoading; set => SetField(ref _isLoading, value); }
+        public bool IsLoading       { get => _isLoading;     set => SetField(ref _isLoading,     value); }
 
-        public ObservableCollection<Anime> PopularAnime { get; } = new();
+        public ObservableCollection<Anime> PopularAnime  { get; } = new();
         public ObservableCollection<Anime> RecentlyAdded { get; } = new();
 
-        public ICommand LoadCommand { get; }
+        public ICommand LoadCommand      { get; }
         public ICommand ViewDetailsCommand { get; }
         public ICommand AddToQueueCommand { get; }
+
+        public event EventHandler<Anime>? NavigationRequested;
 
         public HomeViewModel(
             IAnimeSearchService searchService,
             IDownloadQueueService queueService,
-            INotificationService notificationService)
+            INotificationService notifications)
         {
             _searchService = searchService;
-            _queueService = queueService;
-            _notificationService = notificationService;
+            _queueService  = queueService;
+            _notifications = notifications;
 
-            LoadCommand = new AsyncRelayCommand(LoadAsync);
+            LoadCommand       = new AsyncRelayCommand(LoadAsync);
             ViewDetailsCommand = new RelayCommand<Anime>(NavigateToDetails);
-            AddToQueueCommand = new RelayCommand<Anime>(AddToQueue);
+            AddToQueueCommand  = new AsyncRelayCommand<Anime>(AddFeaturedToQueueAsync);
         }
 
         public async Task LoadAsync()
@@ -44,8 +47,7 @@ namespace NimeVault.ViewModels
             IsLoading = true;
             try
             {
-                var featured = await _searchService.GetFeaturedAsync();
-                FeaturedAnime = featured;
+                FeaturedAnime = await _searchService.GetFeaturedAsync();
 
                 var popular = await _searchService.GetPopularAsync();
                 PopularAnime.Clear();
@@ -63,16 +65,26 @@ namespace NimeVault.ViewModels
 
         private void NavigateToDetails(Anime? anime)
         {
-            if (anime == null) return;
-            NavigationRequested?.Invoke(this, anime);
+            if (anime != null)
+                NavigationRequested?.Invoke(this, anime);
         }
 
-        private void AddToQueue(Anime? anime)
+        private async Task AddFeaturedToQueueAsync(Anime? anime)
         {
             if (anime == null) return;
-            _notificationService.ShowSuccess($"Added {anime.Title} to queue");
+            // Queue Episode 1 of the featured anime as a quick-add
+            var item = new DownloadItem
+            {
+                AnimeId       = anime.Id,
+                EpisodeId     = $"{anime.Id}-ep-1",
+                AnimeTitle    = anime.Title,
+                EpisodeTitle  = "Episode 1",
+                EpisodeNumber = 1,
+                Language      = "SUB",
+                PosterUrl     = anime.PosterUrl
+            };
+            await _queueService.EnqueueAsync(item);
+            _notifications.ShowSuccess($"Added {anime.Title} Ep 1 to queue");
         }
-
-        public event System.EventHandler<Anime>? NavigationRequested;
     }
 }

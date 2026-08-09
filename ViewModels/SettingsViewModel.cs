@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NimeVault.Models;
+using NimeVault.Services;
 using NimeVault.Services.Interfaces;
 
 namespace NimeVault.ViewModels
@@ -9,70 +10,70 @@ namespace NimeVault.ViewModels
     {
         private readonly ISettingsService _settingsService;
         private readonly IThemeService _themeService;
-        private readonly INotificationService _notificationService;
+        private readonly INotificationService _notifications;
+        private AppSettings _s;
 
-        private AppSettings _settings;
-
+        // ── General ────────────────────────────────────────────────────────
         public string DownloadLocation
         {
-            get => _settings.DownloadLocation;
-            set { _settings.DownloadLocation = value; OnPropertyChanged(); }
+            get => _s.DownloadLocation;
+            set { _s.DownloadLocation = value; OnPropertyChanged(); }
         }
-
         public bool StartWithWindows
         {
-            get => _settings.StartWithWindows;
-            set { _settings.StartWithWindows = value; OnPropertyChanged(); }
+            get => _s.StartWithWindows;
+            set { _s.StartWithWindows = value; OnPropertyChanged(); }
         }
-
         public bool MinimizeToTray
         {
-            get => _settings.MinimizeToTray;
-            set { _settings.MinimizeToTray = value; OnPropertyChanged(); }
+            get => _s.MinimizeToTray;
+            set { _s.MinimizeToTray = value; OnPropertyChanged(); }
         }
-
         public bool ConfirmBeforeDelete
         {
-            get => _settings.ConfirmBeforeDelete;
-            set { _settings.ConfirmBeforeDelete = value; OnPropertyChanged(); }
+            get => _s.ConfirmBeforeDelete;
+            set { _s.ConfirmBeforeDelete = value; OnPropertyChanged(); }
+        }
+        public bool ShowNotifications
+        {
+            get => _s.ShowNotifications;
+            set { _s.ShowNotifications = value; OnPropertyChanged(); }
         }
 
+        // ── Download ───────────────────────────────────────────────────────
         public int MaxSimultaneousDownloads
         {
-            get => _settings.MaxSimultaneousDownloads;
-            set { _settings.MaxSimultaneousDownloads = value; OnPropertyChanged(); }
+            get => _s.MaxSimultaneousDownloads;
+            set { _s.MaxSimultaneousDownloads = value; OnPropertyChanged(); }
         }
-
         public bool AutoStartQueuedDownloads
         {
-            get => _settings.AutoStartQueuedDownloads;
-            set { _settings.AutoStartQueuedDownloads = value; OnPropertyChanged(); }
+            get => _s.AutoStartQueuedDownloads;
+            set { _s.AutoStartQueuedDownloads = value; OnPropertyChanged(); }
         }
-
         public bool RetryFailedDownloads
         {
-            get => _settings.RetryFailedDownloads;
-            set { _settings.RetryFailedDownloads = value; OnPropertyChanged(); }
+            get => _s.RetryFailedDownloads;
+            set { _s.RetryFailedDownloads = value; OnPropertyChanged(); }
         }
-
         public int MaxRetryAttempts
         {
-            get => _settings.MaxRetryAttempts;
-            set { _settings.MaxRetryAttempts = value; OnPropertyChanged(); }
+            get => _s.MaxRetryAttempts;
+            set { _s.MaxRetryAttempts = value; OnPropertyChanged(); }
         }
-
         public bool ResumeInterruptedDownloads
         {
-            get => _settings.ResumeInterruptedDownloads;
-            set { _settings.ResumeInterruptedDownloads = value; OnPropertyChanged(); }
+            get => _s.ResumeInterruptedDownloads;
+            set { _s.ResumeInterruptedDownloads = value; OnPropertyChanged(); }
         }
 
+        // ── Theme ──────────────────────────────────────────────────────────
         public AppTheme SelectedTheme
         {
-            get => _settings.Theme;
+            get => _s.Theme;
             set
             {
-                _settings.Theme = value;
+                _s.Theme = value;
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(IsLightTheme));
                 OnPropertyChanged(nameof(IsDarkTheme));
@@ -80,50 +81,48 @@ namespace NimeVault.ViewModels
                 _themeService.ApplyTheme(value);
             }
         }
-
         public bool IsLightTheme
         {
-            get => _settings.Theme == AppTheme.Light;
+            get => _s.Theme == AppTheme.Light;
             set { if (value) SelectedTheme = AppTheme.Light; }
         }
-
         public bool IsDarkTheme
         {
-            get => _settings.Theme == AppTheme.Dark;
+            get => _s.Theme == AppTheme.Dark;
             set { if (value) SelectedTheme = AppTheme.Dark; }
         }
-
         public bool IsSystemTheme
         {
-            get => _settings.Theme == AppTheme.System;
+            get => _s.Theme == AppTheme.System;
             set { if (value) SelectedTheme = AppTheme.System; }
         }
 
+        // ── Commands ───────────────────────────────────────────────────────
         public ICommand BrowseDownloadLocationCommand { get; }
-        public ICommand SaveCommand { get; }
+        public ICommand SaveCommand                   { get; }
 
         public SettingsViewModel(
             ISettingsService settingsService,
             IThemeService themeService,
-            INotificationService notificationService)
+            INotificationService notifications)
         {
             _settingsService = settingsService;
-            _themeService = themeService;
-            _notificationService = notificationService;
-            _settings = settingsService.Settings;
+            _themeService    = themeService;
+            _notifications   = notifications;
+            _s               = settingsService.Settings;
 
-            BrowseDownloadLocationCommand = new RelayCommand(BrowseDownloadLocation);
+            BrowseDownloadLocationCommand = new RelayCommand(BrowseFolder);
             SaveCommand = new AsyncRelayCommand(SaveAsync);
         }
 
-        private void BrowseDownloadLocation()
+        private void BrowseFolder()
         {
             var dialog = new System.Windows.Forms.FolderBrowserDialog
             {
-                Description = "Select Download Location",
-                SelectedPath = DownloadLocation
+                Description  = "Select download location",
+                SelectedPath = DownloadLocation,
+                UseDescriptionForTitle = true
             };
-
             if (dialog.ShowDialog() == System.Windows.Forms.DialogResult.OK)
                 DownloadLocation = dialog.SelectedPath;
         }
@@ -131,7 +130,7 @@ namespace NimeVault.ViewModels
         private async Task SaveAsync()
         {
             await _settingsService.SaveAsync();
-            _notificationService.ShowSuccess("Settings saved");
+            _notifications.ShowSuccess("Settings saved");
         }
     }
 }

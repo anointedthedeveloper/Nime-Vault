@@ -14,7 +14,7 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
-        <!-- ── Top Navigation Bar ────────────────────────────────────────── -->
+        <!-- ── Top Navigation Bar ─────────────────────────────────────────── -->
         <Border Grid.Row="0"
                 Background="{DynamicResource NavBackgroundBrush}"
                 BorderBrush="{DynamicResource NavBorderBrush}"
@@ -38,31 +38,47 @@
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Centre Nav -->
+                <!-- Centre nav — Tag bound to *NavTag so active underbar fires -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-                    <Button Style="{StaticResource NavButton}" Command="{Binding NavigateHomeCommand}">
+
+                    <Button Style="{StaticResource NavButton}"
+                            Tag="{Binding HomeNavTag}"
+                            Command="{Binding NavigateHomeCommand}">
                         <TextBlock Text="Home"
                                    Foreground="{Binding IsHomePage, Converter={StaticResource BoolToActiveNav}}"/>
                     </Button>
-                    <Button Style="{StaticResource NavButton}" Command="{Binding NavigateSearchCommand}">
+
+                    <Button Style="{StaticResource NavButton}"
+                            Tag="{Binding SearchNavTag}"
+                            Command="{Binding NavigateSearchCommand}">
                         <TextBlock Text="Search"
                                    Foreground="{Binding IsSearchPage, Converter={StaticResource BoolToActiveNav}}"/>
                     </Button>
-                    <Button Style="{StaticResource NavButton}" Command="{Binding NavigateDownloadsCommand}">
+
+                    <Button Style="{StaticResource NavButton}"
+                            Tag="{Binding DownloadsNavTag}"
+                            Command="{Binding NavigateDownloadsCommand}">
                         <TextBlock Text="Downloads"
                                    Foreground="{Binding IsDownloadsPage, Converter={StaticResource BoolToActiveNav}}"/>
                     </Button>
-                    <Button Style="{StaticResource NavButton}" Command="{Binding NavigateQueueCommand}">
+
+                    <Button Style="{StaticResource NavButton}"
+                            Tag="{Binding QueueNavTag}"
+                            Command="{Binding NavigateQueueCommand}">
                         <TextBlock Text="Queue"
                                    Foreground="{Binding IsQueuePage, Converter={StaticResource BoolToActiveNav}}"/>
                     </Button>
-                    <Button Style="{StaticResource NavButton}" Command="{Binding NavigateSettingsCommand}">
+
+                    <Button Style="{StaticResource NavButton}"
+                            Tag="{Binding SettingsNavTag}"
+                            Command="{Binding NavigateSettingsCommand}">
                         <TextBlock Text="Settings"
                                    Foreground="{Binding IsSettingsPage, Converter={StaticResource BoolToActiveNav}}"/>
                     </Button>
+
                 </StackPanel>
 
-                <!-- Right Controls -->
+                <!-- Right controls -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
 
                     <!-- Search icon -->
@@ -75,26 +91,25 @@
                                          Stroke="{DynamicResource TextSecondaryBrush}"
                                          StrokeThickness="2" Fill="Transparent"/>
                                 <Line X1="15.5" Y1="15.5" X2="21" Y2="21"
-                                      Stroke="{DynamicResource TextSecondaryBrush}"
-                                      StrokeThickness="2"
+                                      Stroke="{DynamicResource TextSecondaryBrush}" StrokeThickness="2"
                                       StrokeStartLineCap="Round" StrokeEndLineCap="Round"/>
                             </Canvas>
                         </Viewbox>
                     </Button>
 
-                    <!-- Theme toggle -->
+                    <!-- Theme toggle — moon=light mode, sun=dark mode -->
                     <Button Style="{StaticResource IconButton}"
                             Command="{Binding ToggleThemeCommand}"
-                            ToolTip="Toggle theme"
+                            ToolTip="{Binding IsDarkTheme, Converter={StaticResource ThemeToggleTip}}"
                             Margin="4,0,0,0">
                         <Viewbox Width="18" Height="18">
                             <Canvas Width="24" Height="24">
-                                <!-- Moon — visible in light mode -->
+                                <!-- Moon: show when in light mode (switch to dark) -->
                                 <Path Visibility="{Binding IsDarkTheme, Converter={StaticResource InverseBoolToVisibility}}"
                                       Data="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
                                       Stroke="{DynamicResource TextSecondaryBrush}"
                                       StrokeThickness="1.8" Fill="Transparent"/>
-                                <!-- Sun — visible in dark mode -->
+                                <!-- Sun: show when in dark mode (switch to light) -->
                                 <Path Visibility="{Binding IsDarkTheme, Converter={StaticResource BoolToVisibility}}"
                                       Data="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M17 12a5 5 0 1 1-10 0 5 5 0 0 1 10 0z"
                                       Stroke="{DynamicResource TextSecondaryBrush}"
@@ -108,7 +123,7 @@
             </Grid>
         </Border>
 
-        <!-- ── Page Content ──────────────────────────────────────────────── -->
+        <!-- ── Page Content ───────────────────────────────────────────────── -->
         <Grid Grid.Row="1">
             <views:HomeView
                 DataContext="{Binding HomeVM}"
@@ -135,7 +150,7 @@
                 Visibility="{Binding IsSettingsPage, Converter={StaticResource BoolToVisibility}}"/>
         </Grid>
 
-        <!-- ── Toast notifications ───────────────────────────────────────── -->
+        <!-- ── Toast overlay ──────────────────────────────────────────────── -->
         <views:ToastHost x:Name="ToastHostControl"
                          Grid.Row="0" Grid.RowSpan="2"
                          VerticalAlignment="Bottom"

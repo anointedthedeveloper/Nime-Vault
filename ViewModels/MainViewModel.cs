@@ -1,5 +1,6 @@
 using System.Windows.Input;
 using NimeVault.Models;
+using NimeVault.Services;
 using NimeVault.Services.Interfaces;
 
 namespace NimeVault.ViewModels
@@ -40,28 +41,41 @@ namespace NimeVault.ViewModels
                 OnPropertyChanged(nameof(IsQueuePage));
                 OnPropertyChanged(nameof(IsSettingsPage));
                 OnPropertyChanged(nameof(IsDetailsPage));
+                OnPropertyChanged(nameof(HomeNavTag));
+                OnPropertyChanged(nameof(SearchNavTag));
+                OnPropertyChanged(nameof(DownloadsNavTag));
+                OnPropertyChanged(nameof(QueueNavTag));
+                OnPropertyChanged(nameof(SettingsNavTag));
             }
         }
 
-        public bool IsHomePage => CurrentPage == AppPage.Home;
-        public bool IsSearchPage => CurrentPage == AppPage.Search;
-        public bool IsDetailsPage => CurrentPage == AppPage.AnimeDetails;
+        public bool IsHomePage     => CurrentPage == AppPage.Home;
+        public bool IsSearchPage   => CurrentPage == AppPage.Search;
+        public bool IsDetailsPage  => CurrentPage == AppPage.AnimeDetails;
         public bool IsDownloadsPage => CurrentPage == AppPage.Downloads;
-        public bool IsQueuePage => CurrentPage == AppPage.Queue;
-        public bool IsSettingsPage => CurrentPage == AppPage.Settings;
+        public bool IsQueuePage    => CurrentPage == AppPage.Queue;
+        public bool IsSettingsPage  => CurrentPage == AppPage.Settings;
 
+        // Tag strings used by NavButton style trigger to show active underline
+        public string HomeNavTag      => IsHomePage      ? "Active" : "";
+        public string SearchNavTag    => IsSearchPage    ? "Active" : "";
+        public string DownloadsNavTag => IsDownloadsPage ? "Active" : "";
+        public string QueueNavTag     => IsQueuePage     ? "Active" : "";
+        public string SettingsNavTag  => IsSettingsPage  ? "Active" : "";
+
+        // True when the visually-resolved theme is dark (handles System mode)
         public bool IsDarkTheme
         {
             get => _isDarkTheme;
             set => SetField(ref _isDarkTheme, value);
         }
 
-        public ICommand NavigateHomeCommand { get; }
-        public ICommand NavigateSearchCommand { get; }
+        public ICommand NavigateHomeCommand      { get; }
+        public ICommand NavigateSearchCommand    { get; }
         public ICommand NavigateDownloadsCommand { get; }
-        public ICommand NavigateQueueCommand { get; }
-        public ICommand NavigateSettingsCommand { get; }
-        public ICommand ToggleThemeCommand { get; }
+        public ICommand NavigateQueueCommand     { get; }
+        public ICommand NavigateSettingsCommand  { get; }
+        public ICommand ToggleThemeCommand       { get; }
         public ICommand NavigateSearchIconCommand { get; }
 
         public MainViewModel(
@@ -75,34 +89,42 @@ namespace NimeVault.ViewModels
         {
             _themeService = themeService;
 
-            HomeVM = homeVM;
-            SearchVM = searchVM;
+            HomeVM        = homeVM;
+            SearchVM      = searchVM;
             AnimeDetailsVM = animeDetailsVM;
-            DownloadsVM = downloadsVM;
-            QueueVM = queueVM;
-            SettingsVM = settingsVM;
+            DownloadsVM   = downloadsVM;
+            QueueVM       = queueVM;
+            SettingsVM    = settingsVM;
 
-            NavigateHomeCommand = new RelayCommand(() => NavigateTo(AppPage.Home));
-            NavigateSearchCommand = new RelayCommand(() => NavigateTo(AppPage.Search));
-            NavigateDownloadsCommand = new RelayCommand(() => NavigateTo(AppPage.Downloads));
-            NavigateQueueCommand = new RelayCommand(() => NavigateTo(AppPage.Queue));
-            NavigateSettingsCommand = new RelayCommand(() => NavigateTo(AppPage.Settings));
+            NavigateHomeCommand       = new RelayCommand(() => NavigateTo(AppPage.Home));
+            NavigateSearchCommand     = new RelayCommand(() => NavigateTo(AppPage.Search));
+            NavigateDownloadsCommand  = new RelayCommand(() => NavigateTo(AppPage.Downloads));
+            NavigateQueueCommand      = new RelayCommand(() => NavigateTo(AppPage.Queue));
+            NavigateSettingsCommand   = new RelayCommand(() => NavigateTo(AppPage.Settings));
             NavigateSearchIconCommand = new RelayCommand(() => NavigateTo(AppPage.Search));
 
             ToggleThemeCommand = new RelayCommand(() =>
             {
                 _themeService.ToggleTheme();
-                IsDarkTheme = _themeService.CurrentTheme == AppTheme.Dark;
+                SyncDarkFlag();
             });
 
-            _themeService.ThemeChanged += (_, theme) =>
-            {
-                IsDarkTheme = theme == AppTheme.Dark;
-            };
+            _themeService.ThemeChanged += (_, _) => SyncDarkFlag();
 
-            HomeVM.NavigationRequested += (_, anime) => NavigateToDetails(anime);
-            SearchVM.AnimeSelected += (_, anime) => NavigateToDetails(anime);
-            AnimeDetailsVM.BackRequested += (_, _) => NavigateTo(_previousPage);
+            // Sync initial state
+            SyncDarkFlag();
+
+            // Wire sub-VM events
+            HomeVM.NavigationRequested        += (_, anime) => NavigateToDetails(anime);
+            SearchVM.AnimeSelected            += (_, anime) => NavigateToDetails(anime);
+            AnimeDetailsVM.BackRequested      += (_, _)     => NavigateTo(_previousPage);
+        }
+
+        private void SyncDarkFlag()
+        {
+            // Check the actual resolved theme (handles System mode)
+            IsDarkTheme = ThemeService.IsSystemDarkMode() && _themeService.CurrentTheme == AppTheme.System
+                || _themeService.CurrentTheme == AppTheme.Dark;
         }
 
         private void NavigateTo(AppPage page)
@@ -115,7 +137,7 @@ namespace NimeVault.ViewModels
         public void NavigateToDetails(Anime anime)
         {
             _previousPage = CurrentPage;
-            CurrentPage = AppPage.AnimeDetails;
+            CurrentPage   = AppPage.AnimeDetails;
             _ = AnimeDetailsVM.LoadAsync(anime.Id);
         }
     }

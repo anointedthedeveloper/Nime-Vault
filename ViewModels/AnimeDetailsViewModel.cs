@@ -11,61 +11,61 @@ namespace NimeVault.ViewModels
     {
         private readonly IAnimeDetailsService _detailsService;
         private readonly IDownloadQueueService _queueService;
-        private readonly INotificationService _notificationService;
+        private readonly INotificationService _notifications;
 
         private Anime? _anime;
         private bool _isLoading;
         private bool _isSubSelected = true;
-        private string _selectedLanguage = "SUB";
 
-        public Anime? Anime { get => _anime; set => SetField(ref _anime, value); }
-        public bool IsLoading { get => _isLoading; set => SetField(ref _isLoading, value); }
+        public Anime? Anime     { get => _anime;     set => SetField(ref _anime,     value); }
+        public bool IsLoading   { get => _isLoading; set => SetField(ref _isLoading, value); }
+
         public bool IsSubSelected
         {
             get => _isSubSelected;
             set
             {
                 SetField(ref _isSubSelected, value);
-                _selectedLanguage = value ? "SUB" : "DUB";
                 OnPropertyChanged(nameof(IsDubSelected));
                 OnPropertyChanged(nameof(SelectedLanguage));
             }
         }
-        public bool IsDubSelected => !_isSubSelected;
-        public string SelectedLanguage => _selectedLanguage;
+        public bool IsDubSelected    => !_isSubSelected;
+        public string SelectedLanguage => _isSubSelected ? "SUB" : "DUB";
 
         public ObservableCollection<Episode> Episodes { get; } = new();
 
-        public ICommand LoadCommand { get; }
-        public ICommand SelectSubCommand { get; }
-        public ICommand SelectDubCommand { get; }
-        public ICommand DownloadEpisodeCommand { get; }
+        public ICommand LoadCommand             { get; }
+        public ICommand SelectSubCommand        { get; }
+        public ICommand SelectDubCommand        { get; }
+        public ICommand DownloadEpisodeCommand  { get; }
         public ICommand AddEpisodeToQueueCommand { get; }
-        public ICommand GoBackCommand { get; }
+        public ICommand AddAllToQueueCommand    { get; }
+        public ICommand GoBackCommand           { get; }
 
         public event EventHandler? BackRequested;
 
         public AnimeDetailsViewModel(
             IAnimeDetailsService detailsService,
             IDownloadQueueService queueService,
-            INotificationService notificationService)
+            INotificationService notifications)
         {
             _detailsService = detailsService;
-            _queueService = queueService;
-            _notificationService = notificationService;
+            _queueService   = queueService;
+            _notifications  = notifications;
 
-            LoadCommand = new AsyncRelayCommand<string>(LoadAsync);
-            SelectSubCommand = new RelayCommand(() => IsSubSelected = true);
-            SelectDubCommand = new RelayCommand(() => IsSubSelected = false);
-            DownloadEpisodeCommand = new AsyncRelayCommand<Episode>(DownloadEpisodeAsync);
+            LoadCommand              = new AsyncRelayCommand<string>(LoadAsync);
+            SelectSubCommand         = new RelayCommand(() => IsSubSelected = true);
+            SelectDubCommand         = new RelayCommand(() => IsSubSelected = false);
+            DownloadEpisodeCommand   = new AsyncRelayCommand<Episode>(DownloadEpisodeAsync);
             AddEpisodeToQueueCommand = new AsyncRelayCommand<Episode>(AddEpisodeToQueueAsync);
-            GoBackCommand = new RelayCommand(() => BackRequested?.Invoke(this, EventArgs.Empty));
+            AddAllToQueueCommand     = new AsyncRelayCommand(AddAllToQueueAsync);
+            GoBackCommand            = new RelayCommand(() => BackRequested?.Invoke(this, EventArgs.Empty));
         }
 
         public async Task LoadAsync(string? animeId)
         {
             if (string.IsNullOrWhiteSpace(animeId)) return;
-
             IsLoading = true;
             try
             {
@@ -74,43 +74,48 @@ namespace NimeVault.ViewModels
                 Episodes.Clear();
                 foreach (var ep in eps) Episodes.Add(ep);
             }
-            finally
-            {
-                IsLoading = false;
-            }
+            finally { IsLoading = false; }
         }
 
-        private async Task DownloadEpisodeAsync(Episode? episode)
+        private async Task DownloadEpisodeAsync(Episode? ep)
         {
-            if (episode == null || Anime == null) return;
-            await AddToQueueInternal(episode);
-            _notificationService.ShowSuccess($"Download started: {Anime.Title} Ep {episode.Number}");
+            if (ep == null || Anime == null) return;
+            await Enqueue(ep);
+            _notifications.ShowSuccess($"Download started: {Anime.Title} Ep {ep.Number}");
         }
 
-        private async Task AddEpisodeToQueueAsync(Episode? episode)
+        private async Task AddEpisodeToQueueAsync(Episode? ep)
         {
-            if (episode == null || Anime == null) return;
-            await AddToQueueInternal(episode);
-            _notificationService.Show($"Added to queue: {Anime.Title} Ep {episode.Number}");
+            if (ep == null || Anime == null) return;
+            await Enqueue(ep);
+            _notifications.Show($"Added to queue: {Anime.Title} Ep {ep.Number}");
         }
 
-        private async Task AddToQueueInternal(Episode episode)
+        private async Task AddAllToQueueAsync()
+        {
+            if (Anime == null || Episodes.Count == 0) return;
+            foreach (var ep in Episodes)
+                await Enqueue(ep);
+            _notifications.ShowSuccess($"Added all {Episodes.Count} episodes to queue");
+        }
+
+        private async Task Enqueue(Episode ep)
         {
             if (Anime == null) return;
-            var item = new DownloadItem
+            await _queueService.EnqueueAsync(new DownloadItem
             {
-                AnimeId = Anime.Id,
-                EpisodeId = episode.Id,
-                AnimeTitle = Anime.Title,
-                EpisodeTitle = episode.Title,
-                EpisodeNumber = episode.Number,
-                Language = _selectedLanguage,
-                PosterUrl = Anime.PosterUrl
-            };
-            await _queueService.EnqueueAsync(item);
+                AnimeId       = Anime.Id,
+                EpisodeId     = ep.Id,
+                AnimeTitle    = Anime.Title,
+                EpisodeTitle  = ep.Title,
+                EpisodeNumber = ep.Number,
+                Language      = SelectedLanguage,
+                PosterUrl     = Anime.PosterUrl
+            });
         }
     }
 
+    // Generic async relay command — placed here to avoid a separate file
     public class AsyncRelayCommand<T> : ICommand
     {
         private readonly Func<T?, Task> _execute;
@@ -119,13 +124,13 @@ namespace NimeVault.ViewModels
 
         public AsyncRelayCommand(Func<T?, Task> execute, Func<T?, bool>? canExecute = null)
         {
-            _execute = execute;
+            _execute    = execute;
             _canExecute = canExecute;
         }
 
         public event EventHandler? CanExecuteChanged
         {
-            add => CommandManager.RequerySuggested += value;
+            add    => CommandManager.RequerySuggested += value;
             remove => CommandManager.RequerySuggested -= value;
         }
 

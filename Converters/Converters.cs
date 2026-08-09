@@ -5,6 +5,7 @@ using System.Windows.Data;
 using System.Windows.Media;
 using NimeVault.Models;
 
+
 namespace NimeVault.Converters
 {
     public class BoolToVisibilityConverter : IValueConverter
@@ -156,6 +157,18 @@ namespace NimeVault.Converters
             return 0.0;
         }
         public object[] ConvertBack(object value, Type[] targetTypes, object parameter, CultureInfo culture)
+            => throw new NotImplementedException();
+    }
+}
+
+namespace NimeVault.Converters
+{
+    /// <summary>Returns tooltip text for the theme toggle button.</summary>
+    public class ThemeToggleTipConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+            => (value is bool dark && dark) ? "Switch to light mode" : "Switch to dark mode";
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
             => throw new NotImplementedException();
     }
 }
