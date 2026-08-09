@@ -3,25 +3,38 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Background="{DynamicResource BackgroundPrimaryBrush}">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="40,32,40,40">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="40,36,40,48">
+        <StackPanel>
 
             <!-- Header -->
-            <Grid Margin="0,0,0,24">
+            <Grid Margin="0,0,0,28">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="Queue" Style="{StaticResource PageTitle}"/>
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Style="{StaticResource SecondaryButton}" Command="{Binding StartQueueCommand}" Margin="0,0,8,0">
-                        <TextBlock Text="▶  Start" FontSize="13"/>
+                <StackPanel>
+                    <TextBlock Text="Queue" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Text="Manage your download queue"
+                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Style="{StaticResource PrimaryButton}" Command="{Binding StartQueueCommand}" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="▶" Margin="0,0,6,0"/>
+                            <TextBlock Text="Start" FontSize="13"/>
+                        </StackPanel>
                     </Button>
                     <Button Style="{StaticResource SecondaryButton}" Command="{Binding PauseAllCommand}" Margin="0,0,8,0">
-                        <TextBlock Text="⏸  Pause All" FontSize="13"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⏸" Margin="0,0,6,0"/>
+                            <TextBlock Text="Pause All" FontSize="13"/>
+                        </StackPanel>
                     </Button>
                     <Button Style="{StaticResource SecondaryButton}" Command="{Binding ResumeAllCommand}" Margin="0,0,8,0">
-                        <TextBlock Text="▶  Resume All" FontSize="13"/>
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="▶" Margin="0,0,6,0"/>
+                            <TextBlock Text="Resume All" FontSize="13"/>
+                        </StackPanel>
                     </Button>
                     <Button Style="{StaticResource GhostButton}" Command="{Binding ClearCompletedCommand}" FontSize="12">
                         <TextBlock Text="Clear Completed"/>
@@ -31,33 +44,59 @@
 
             <!-- Empty State -->
             <Border Visibility="{Binding HasItems, Converter={StaticResource InverseBoolToVisibility}}"
-                    Padding="48" CornerRadius="10"
-                    Background="{DynamicResource BackgroundSecondaryBrush}">
+                    Padding="64" CornerRadius="16"
+                    Background="{DynamicResource BackgroundSecondaryBrush}"
+                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
                 <StackPanel HorizontalAlignment="Center">
-                    <TextBlock Text="Your download queue is empty" FontSize="16" FontWeight="SemiBold"
+                    <Border Width="72" Height="72" CornerRadius="36" HorizontalAlignment="Center" Margin="0,0,0,20">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#1A7C3AED" Offset="0"/>
+                                <GradientStop Color="#1AEC4899" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <TextBlock Text="📋" FontSize="28" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <TextBlock Text="Your download queue is empty" FontSize="17" FontWeight="Bold"
                                Foreground="{DynamicResource TextPrimaryBrush}" HorizontalAlignment="Center"/>
                     <TextBlock Text="Add episodes from the anime details page to get started"
                                FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}"
-                               HorizontalAlignment="Center" Margin="0,8,0,0"/>
+                               HorizontalAlignment="Center" Margin="0,10,0,0"/>
                 </StackPanel>
             </Border>
 
             <!-- Currently Downloading -->
-            <StackPanel Visibility="{Binding HasActive, Converter={StaticResource BoolToVisibility}}" Margin="0,0,0,24">
-                <TextBlock Text="Currently Downloading" FontSize="14" FontWeight="SemiBold"
-                           Foreground="{DynamicResource TextSecondaryBrush}"
-                           Margin="0,0,0,12"/>
+            <StackPanel Visibility="{Binding HasActive, Converter={StaticResource BoolToVisibility}}" Margin="0,0,0,28">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                    <Border Width="3" CornerRadius="2" Background="{StaticResource BrandPrimaryBrush}" Margin="0,0,10,0"/>
+                    <TextBlock Text="Currently Downloading" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    <!-- Animated pulse -->
+                    <Ellipse x:Name="ActivePulse" Width="7" Height="7" Fill="{StaticResource BrandPrimaryBrush}"
+                             VerticalAlignment="Center" Margin="10,0,0,0">
+                        <Ellipse.Triggers>
+                            <EventTrigger RoutedEvent="Ellipse.Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                         From="0.2" To="1" Duration="0:0:0.9"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Ellipse.Triggers>
+                    </Ellipse>
+                </StackPanel>
                 <ItemsControl ItemsSource="{Binding ActiveItems}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,8" Padding="16,12">
+                            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,8" Padding="18,14">
                                 <Border.BorderBrush>
-                                    <SolidColorBrush Color="#7C3AED" Opacity="0.4"/>
+                                    <SolidColorBrush Color="#7C3AED" Opacity="0.5"/>
                                 </Border.BorderBrush>
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="32"/>
-                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="56"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
@@ -65,22 +104,22 @@
                                     <TextBlock Grid.Column="0" Text="▶" Foreground="{StaticResource BrandPrimaryBrush}"
                                                VerticalAlignment="Center" FontSize="14"/>
 
-                                    <Border Grid.Column="1" Width="48" Height="64" CornerRadius="5" ClipToBounds="True">
+                                    <Border Grid.Column="1" Width="48" Height="66" CornerRadius="6" ClipToBounds="True">
                                         <Image Source="{Binding PosterUrl}" Stretch="UniformToFill"/>
                                     </Border>
 
                                     <StackPanel Grid.Column="2" Margin="16,0,0,0" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding AnimeTitle}" FontSize="14" FontWeight="SemiBold"
                                                    Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                                             <TextBlock Text="{Binding EpisodeNumber, StringFormat='Episode {0}'}"
-                                                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,0,12,0"/>
-                                            <Border CornerRadius="4" Padding="5,2" Background="#EDE9FE">
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,0,10,0"/>
+                                            <Border CornerRadius="5" Padding="6,2" Background="#EDE9FE">
                                                 <TextBlock Text="{Binding Language}" FontSize="10" FontWeight="Bold" Foreground="#7C3AED"/>
                                             </Border>
                                         </StackPanel>
                                         <TextBlock Text="{Binding StatusText}" Foreground="{StaticResource BrandPrimaryBrush}"
-                                                   FontSize="11" FontWeight="SemiBold" Margin="0,4,0,0"/>
+                                                   FontSize="11" FontWeight="SemiBold" Margin="0,5,0,0"/>
                                     </StackPanel>
 
                                     <Button Grid.Column="3" Style="{StaticResource DangerButton}"
@@ -97,47 +136,47 @@
 
             <!-- Waiting in Queue -->
             <StackPanel Visibility="{Binding HasWaiting, Converter={StaticResource BoolToVisibility}}">
-                <TextBlock Text="Waiting in Queue" FontSize="14" FontWeight="SemiBold"
-                           Foreground="{DynamicResource TextSecondaryBrush}"
-                           Margin="0,0,0,12"/>
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                    <Border Width="3" CornerRadius="2" Background="{StaticResource WarningBrush}" Margin="0,0,10,0"/>
+                    <TextBlock Text="Waiting in Queue" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                </StackPanel>
                 <ItemsControl ItemsSource="{Binding WaitingItems}">
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Style="{StaticResource CardStyle}" Margin="0,0,0,8" Padding="16,12">
+                            <Border Style="{StaticResource HoverCardStyle}" Margin="0,0,0,8" Padding="18,14">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="32"/>
-                                        <ColumnDefinition Width="52"/>
+                                        <ColumnDefinition Width="56"/>
                                         <ColumnDefinition Width="*"/>
                                         <ColumnDefinition Width="Auto"/>
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- Position -->
                                     <TextBlock Grid.Column="0"
                                                Text="{Binding Position}"
                                                Foreground="{DynamicResource TextSecondaryBrush}"
-                                               FontSize="14" FontWeight="SemiBold"
+                                               FontSize="14" FontWeight="Bold"
                                                VerticalAlignment="Center" HorizontalAlignment="Center"/>
 
-                                    <Border Grid.Column="1" Width="48" Height="64" CornerRadius="5" ClipToBounds="True">
+                                    <Border Grid.Column="1" Width="48" Height="66" CornerRadius="6" ClipToBounds="True">
                                         <Image Source="{Binding PosterUrl}" Stretch="UniformToFill"/>
                                     </Border>
 
                                     <StackPanel Grid.Column="2" Margin="16,0,0,0" VerticalAlignment="Center">
                                         <TextBlock Text="{Binding AnimeTitle}" FontSize="14" FontWeight="SemiBold"
                                                    Foreground="{DynamicResource TextPrimaryBrush}"/>
-                                        <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <StackPanel Orientation="Horizontal" Margin="0,5,0,0">
                                             <TextBlock Text="{Binding EpisodeNumber, StringFormat='Episode {0}'}"
-                                                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,0,12,0"/>
-                                            <Border CornerRadius="4" Padding="5,2" Background="#EDE9FE">
+                                                       Foreground="{DynamicResource TextSecondaryBrush}" FontSize="12" Margin="0,0,10,0"/>
+                                            <Border CornerRadius="5" Padding="6,2" Background="#EDE9FE">
                                                 <TextBlock Text="{Binding Language}" FontSize="10" FontWeight="Bold" Foreground="#7C3AED"/>
                                             </Border>
                                         </StackPanel>
                                         <TextBlock Text="{Binding StatusText}" Foreground="{DynamicResource TextSecondaryBrush}"
-                                                   FontSize="11" Margin="0,4,0,0"/>
+                                                   FontSize="11" Margin="0,5,0,0"/>
                                     </StackPanel>
 
-                                    <!-- Controls -->
                                     <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
                                         <Button Style="{StaticResource IconButton}"
                                                 Command="{Binding DataContext.MoveUpCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"

@@ -1,4 +1,6 @@
-﻿using System.Windows;
+﻿using System;
+using System.IO;
+using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using NimeVault.Services;
 using NimeVault.Services.Interfaces;
@@ -13,9 +15,15 @@ namespace NimeVault
 
         protected override async void OnStartup(StartupEventArgs e)
         {
-            base.OnStartup(e);
+            try
+            {
+                Log("OnStartup begin");
+                base.OnStartup(e);
 
-            var services = new ServiceCollection();
+                AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+                DispatcherUnhandledException += App_DispatcherUnhandledException;
+
+                var services = new ServiceCollection();
 
             // Core services
             services.AddSingleton<ISettingsService, SettingsService>();
@@ -48,10 +56,45 @@ namespace NimeVault
             var themeService = Services.GetRequiredService<IThemeService>();
             themeService.ApplyTheme(settingsService.Settings.Theme);
 
+            // Register a global UI exception handler
+            DispatcherUnhandledException += App_DispatcherUnhandledException;
+
             // Show main window
             var mainWindow = new Views.MainWindow();
             mainWindow.DataContext = Services.GetRequiredService<MainViewModel>();
             mainWindow.Show();
+            Log("Main window shown");
+        }
+        catch (Exception ex)
+        {
+            Log($"Startup failure: {ex}");
+            System.Windows.MessageBox.Show(ex.Message, "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            Shutdown();
+        }
+    }
+
+        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            Log($"Unhandled domain exception: {e.ExceptionObject}");
+        }
+
+        private void App_DispatcherUnhandledException(object sender, System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            var text = $"Unhandled exception: {e.Exception.Message}\n\n{e.Exception}";
+            Log(text);
+            System.Windows.MessageBox.Show(text, "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
+            File.WriteAllText(Path.Combine(AppContext.BaseDirectory, "startup-error.txt"), e.Exception.ToString());
+            e.Handled = true;
+            Shutdown();
+        }
+
+        private static void Log(string message)
+        {
+            try
+            {
+                File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "startup-log.txt"), $"[{DateTime.Now:O}] {message}{Environment.NewLine}");
+            }
+            catch { }
         }
     }
 }

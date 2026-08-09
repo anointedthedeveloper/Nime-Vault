@@ -1,82 +1,126 @@
 <UserControl x:Class="NimeVault.Views.AnimeCard"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             Width="178">
+             Width="185">
 
     <Border x:Name="CardBorder"
             Style="{StaticResource CardStyle}"
             Cursor="Hand"
-            ClipToBounds="True">
+            ClipToBounds="True"
+            RenderTransformOrigin="0.5,0.5">
         <Border.RenderTransform>
-            <TranslateTransform x:Name="CardTranslate"/>
+            <TransformGroup>
+                <ScaleTransform x:Name="CardScale" ScaleX="1" ScaleY="1"/>
+                <TranslateTransform x:Name="CardTranslate"/>
+            </TransformGroup>
         </Border.RenderTransform>
         <Border.Triggers>
             <EventTrigger RoutedEvent="MouseEnter">
                 <BeginStoryboard>
                     <Storyboard>
+                        <DoubleAnimation Storyboard.TargetName="CardScale"
+                                         Storyboard.TargetProperty="ScaleX"
+                                         To="1.03" Duration="0:0:0.18">
+                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <DoubleAnimation Storyboard.TargetName="CardScale"
+                                         Storyboard.TargetProperty="ScaleY"
+                                         To="1.03" Duration="0:0:0.18">
+                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
                         <DoubleAnimation Storyboard.TargetName="CardTranslate"
                                          Storyboard.TargetProperty="Y"
-                                         To="-3" Duration="0:0:0.15"/>
+                                         To="-4" Duration="0:0:0.18">
+                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <DoubleAnimation Storyboard.TargetName="HoverOverlay"
+                                         Storyboard.TargetProperty="Opacity"
+                                         To="1" Duration="0:0:0.2"/>
                     </Storyboard>
                 </BeginStoryboard>
             </EventTrigger>
             <EventTrigger RoutedEvent="MouseLeave">
                 <BeginStoryboard>
                     <Storyboard>
+                        <DoubleAnimation Storyboard.TargetName="CardScale"
+                                         Storyboard.TargetProperty="ScaleX"
+                                         To="1" Duration="0:0:0.2">
+                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <DoubleAnimation Storyboard.TargetName="CardScale"
+                                         Storyboard.TargetProperty="ScaleY"
+                                         To="1" Duration="0:0:0.2">
+                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
                         <DoubleAnimation Storyboard.TargetName="CardTranslate"
                                          Storyboard.TargetProperty="Y"
-                                         To="0" Duration="0:0:0.15"/>
-                    </Storyboard>
-                </BeginStoryboard>
-            </EventTrigger>
-            <EventTrigger RoutedEvent="MouseLeftButtonUp">
-                <BeginStoryboard>
-                    <Storyboard>
-                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="CardBorder"
-                                                        Storyboard.TargetProperty="Tag">
-                            <DiscreteObjectKeyFrame KeyTime="0" Value="clicked"/>
-                        </ObjectAnimationUsingKeyFrames>
+                                         To="0" Duration="0:0:0.2">
+                            <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                        </DoubleAnimation>
+                        <DoubleAnimation Storyboard.TargetName="HoverOverlay"
+                                         Storyboard.TargetProperty="Opacity"
+                                         To="0" Duration="0:0:0.2"/>
                     </Storyboard>
                 </BeginStoryboard>
             </EventTrigger>
         </Border.Triggers>
 
-        <StackPanel>
-            <!-- Poster -->
-            <Border Height="240" ClipToBounds="True" CornerRadius="10,10,0,0">
-                <Image Source="{Binding PosterUrl}"
-                       Stretch="UniformToFill"
-                       HorizontalAlignment="Center"/>
-            </Border>
+        <Grid>
+            <StackPanel>
+                <!-- Poster -->
+                <Border Height="252" ClipToBounds="True" CornerRadius="12,12,0,0">
+                    <Image Source="{Binding PosterUrl}"
+                           Stretch="UniformToFill"
+                           HorizontalAlignment="Center"/>
+                </Border>
 
-            <!-- Info -->
-            <StackPanel Margin="12,10,12,12">
-                <!-- Title -->
-                <TextBlock Text="{Binding Title}"
-                           Foreground="{DynamicResource TextPrimaryBrush}"
-                           FontSize="13" FontWeight="SemiBold"
-                           TextTrimming="CharacterEllipsis"
-                           MaxHeight="40" TextWrapping="Wrap"/>
+                <!-- Info -->
+                <StackPanel Margin="12,10,12,14">
+                    <TextBlock Text="{Binding Title}"
+                               Foreground="{DynamicResource TextPrimaryBrush}"
+                               FontSize="13" FontWeight="SemiBold"
+                               TextTrimming="CharacterEllipsis"
+                               MaxHeight="40" TextWrapping="Wrap"/>
 
-                <!-- Year + Episodes -->
-                <StackPanel Orientation="Horizontal" Margin="0,4,0,6">
-                    <TextBlock Text="{Binding Year}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,0,8,0"/>
-                    <TextBlock Text="{Binding TotalEpisodes, StringFormat='{}{0} Eps'}"
-                               Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
-                </StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,5,0,7">
+                        <TextBlock Text="{Binding Year}" Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11" Margin="0,0,8,0"/>
+                        <TextBlock Text="{Binding TotalEpisodes, StringFormat='{}{0} Eps'}"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" FontSize="11"/>
+                    </StackPanel>
 
-                <!-- Badges -->
-                <StackPanel Orientation="Horizontal">
-                    <Border Style="{StaticResource SubBadge}"
-                            Visibility="{Binding HasSub, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="SUB" FontSize="10" FontWeight="Bold" Foreground="#7C3AED"/>
-                    </Border>
-                    <Border Style="{StaticResource DubBadge}"
-                            Visibility="{Binding HasDub, Converter={StaticResource BoolToVisibility}}">
-                        <TextBlock Text="DUB" FontSize="10" FontWeight="Bold" Foreground="#EC4899"/>
-                    </Border>
+                    <StackPanel Orientation="Horizontal">
+                        <Border Style="{StaticResource SubBadge}"
+                                Visibility="{Binding HasSub, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="SUB" FontSize="10" FontWeight="Bold" Foreground="#7C3AED"/>
+                        </Border>
+                        <Border Style="{StaticResource DubBadge}"
+                                Visibility="{Binding HasDub, Converter={StaticResource BoolToVisibility}}">
+                            <TextBlock Text="DUB" FontSize="10" FontWeight="Bold" Foreground="#EC4899"/>
+                        </Border>
+                    </StackPanel>
                 </StackPanel>
             </StackPanel>
-        </StackPanel>
+
+            <!-- Hover overlay with rating -->
+            <Border x:Name="HoverOverlay"
+                    CornerRadius="12"
+                    Opacity="0"
+                    IsHitTestVisible="False">
+                <Border.Background>
+                    <LinearGradientBrush StartPoint="0,1" EndPoint="0,0">
+                        <GradientStop Color="#CC7C3AED" Offset="0"/>
+                        <GradientStop Color="#007C3AED" Offset="0.6"/>
+                    </LinearGradientBrush>
+                </Border.Background>
+                <StackPanel VerticalAlignment="Bottom" Margin="12,0,12,14">
+                    <TextBlock Text="{Binding Rating, Converter={StaticResource RatingToStars}}"
+                               Foreground="#F59E0B" FontSize="15" FontWeight="Bold"
+                               HorizontalAlignment="Center"/>
+                    <TextBlock Text="View Details →"
+                               Foreground="White" FontSize="12" FontWeight="SemiBold"
+                               HorizontalAlignment="Center" Margin="0,4,0,0"/>
+                </StackPanel>
+            </Border>
+        </Grid>
     </Border>
 </UserControl>

@@ -4,91 +4,101 @@
              xmlns:views="clr-namespace:NimeVault.Views"
              Background="{DynamicResource BackgroundPrimaryBrush}">
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto">
-        <StackPanel Margin="40,32,40,40">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="40,36,40,48">
+        <StackPanel>
 
             <!-- Header -->
-            <Grid Margin="0,0,0,24">
+            <Grid Margin="0,0,0,28">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
-                <TextBlock Text="Downloads" Style="{StaticResource PageTitle}"/>
-                <StackPanel Grid.Column="1" Orientation="Horizontal">
-                    <Button Style="{StaticResource SecondaryButton}" Command="{Binding PauseAllCommand}"
-                            Margin="0,0,8,0">
-                        <TextBlock Text="⏸  Pause All" FontSize="13"/>
+                <StackPanel>
+                    <TextBlock Text="Downloads" Style="{StaticResource PageTitle}"/>
+                    <TextBlock Text="Manage your active and completed downloads"
+                               FontSize="13" Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,4,0,0"/>
+                </StackPanel>
+                <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <Button Style="{StaticResource SecondaryButton}" Command="{Binding PauseAllCommand}" Margin="0,0,8,0">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="⏸" Margin="0,0,6,0"/>
+                            <TextBlock Text="Pause All" FontSize="13"/>
+                        </StackPanel>
                     </Button>
-                    <Button Style="{StaticResource SecondaryButton}" Command="{Binding ResumeAllCommand}"
-                            Margin="0,0,8,0">
-                        <TextBlock Text="▶  Resume All" FontSize="13"/>
+                    <Button Style="{StaticResource PrimaryButton}" Command="{Binding ResumeAllCommand}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="▶" Margin="0,0,6,0"/>
+                            <TextBlock Text="Resume All" FontSize="13"/>
+                        </StackPanel>
                     </Button>
                 </StackPanel>
             </Grid>
 
-            <!-- Active Downloads -->
-            <TextBlock Text="Active Downloads" FontSize="14" FontWeight="SemiBold"
-                       Foreground="{DynamicResource TextSecondaryBrush}"
-                       Margin="0,0,0,12"/>
+            <!-- Active Downloads Section -->
+            <StackPanel Margin="0,0,0,32">
+                <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                    <Border Width="3" CornerRadius="2" Background="{StaticResource BrandPrimaryBrush}" Margin="0,0,10,0"/>
+                    <TextBlock Text="Active Downloads" FontSize="14" FontWeight="SemiBold"
+                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                </StackPanel>
 
-            <!-- No active -->
-            <Border Visibility="{Binding HasActiveDownloads, Converter={StaticResource InverseBoolToVisibility}}"
-                    Padding="32" CornerRadius="10"
-                    Background="{DynamicResource BackgroundSecondaryBrush}"
-                    Margin="0,0,0,24">
-                <StackPanel HorizontalAlignment="Center">
-                    <TextBlock Text="No active downloads" FontSize="14"
+                <!-- No active -->
+                <Border Visibility="{Binding HasActiveDownloads, Converter={StaticResource InverseBoolToVisibility}}"
+                        Padding="40" CornerRadius="14"
+                        Background="{DynamicResource BackgroundSecondaryBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                    <StackPanel HorizontalAlignment="Center">
+                        <TextBlock Text="No active downloads" FontSize="15" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
+                        <TextBlock Text="Downloads will appear here when started" FontSize="12"
+                                   Foreground="{DynamicResource TextSecondaryBrush}"
+                                   HorizontalAlignment="Center" Margin="0,6,0,0" Opacity="0.7"/>
+                    </StackPanel>
+                </Border>
+
+                <ItemsControl ItemsSource="{Binding ActiveDownloads}"
+                              Visibility="{Binding HasActiveDownloads, Converter={StaticResource BoolToVisibility}}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <views:DownloadCard Margin="0,0,0,10" DataContext="{Binding}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
+
+            <!-- Completed Section -->
+            <StackPanel>
+                <Grid Margin="0,0,0,14">
+                    <StackPanel Orientation="Horizontal">
+                        <Border Width="3" CornerRadius="2" Background="{StaticResource SuccessBrush}" Margin="0,0,10,0"/>
+                        <TextBlock Text="Completed" FontSize="14" FontWeight="SemiBold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}"/>
+                    </StackPanel>
+                    <Button Grid.Column="1" Style="{StaticResource GhostButton}"
+                            Command="{Binding ClearCompletedCommand}"
+                            Visibility="{Binding HasCompletedDownloads, Converter={StaticResource BoolToVisibility}}"
+                            HorizontalAlignment="Right" FontSize="12">
+                        <TextBlock Text="Clear All" Foreground="{StaticResource ErrorBrush}"/>
+                    </Button>
+                </Grid>
+
+                <Border Visibility="{Binding HasCompletedDownloads, Converter={StaticResource InverseBoolToVisibility}}"
+                        Padding="40" CornerRadius="14"
+                        Background="{DynamicResource BackgroundSecondaryBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                    <TextBlock Text="No completed downloads yet" FontSize="15" FontWeight="SemiBold"
                                Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Downloads will appear here when started" FontSize="12"
-                               Foreground="{DynamicResource TextSecondaryBrush}"
-                               HorizontalAlignment="Center" Margin="0,6,0,0"/>
-                </StackPanel>
-            </Border>
+                </Border>
 
-            <!-- Active list -->
-            <ItemsControl ItemsSource="{Binding ActiveDownloads}"
-                          Visibility="{Binding HasActiveDownloads, Converter={StaticResource BoolToVisibility}}"
-                          Margin="0,0,0,24">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <views:DownloadCard Margin="0,0,0,10" DataContext="{Binding}"/>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-
-            <!-- Completed -->
-            <Grid Margin="0,0,0,12">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <TextBlock Text="Completed" FontSize="14" FontWeight="SemiBold"
-                           Foreground="{DynamicResource TextSecondaryBrush}"/>
-                <Button Grid.Column="1" Style="{StaticResource GhostButton}"
-                        Command="{Binding ClearCompletedCommand}"
-                        Visibility="{Binding HasCompletedDownloads, Converter={StaticResource BoolToVisibility}}"
-                        FontSize="12">
-                    <TextBlock Text="Clear All"/>
-                </Button>
-            </Grid>
-
-            <!-- No completed -->
-            <Border Visibility="{Binding HasCompletedDownloads, Converter={StaticResource InverseBoolToVisibility}}"
-                    Padding="32" CornerRadius="10"
-                    Background="{DynamicResource BackgroundSecondaryBrush}">
-                <TextBlock Text="No completed downloads yet" FontSize="14"
-                           Foreground="{DynamicResource TextSecondaryBrush}" HorizontalAlignment="Center"/>
-            </Border>
-
-            <!-- Completed list -->
-            <ItemsControl ItemsSource="{Binding CompletedDownloads}"
-                          Visibility="{Binding HasCompletedDownloads, Converter={StaticResource BoolToVisibility}}">
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <views:DownloadCard Margin="0,0,0,10" DataContext="{Binding}"/>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+                <ItemsControl ItemsSource="{Binding CompletedDownloads}"
+                              Visibility="{Binding HasCompletedDownloads, Converter={StaticResource BoolToVisibility}}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <views:DownloadCard Margin="0,0,0,10" DataContext="{Binding}"/>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </StackPanel>
 
         </StackPanel>
     </ScrollViewer>

@@ -1,4 +1,5 @@
 <Window x:Class="NimeVault.Views.MainWindow"
+        x:Name="RootWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:views="clr-namespace:NimeVault.Views"
@@ -14,40 +15,70 @@
             <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
 
+        <!-- Ambient animated background blobs -->
+        <Canvas Grid.RowSpan="2" IsHitTestVisible="False" ClipToBounds="True">
+            <Ellipse x:Name="Blob1" Width="600" Height="600"
+                     Canvas.Left="-100" Canvas.Top="-200" Opacity="0.045">
+                <Ellipse.Fill>
+                    <RadialGradientBrush>
+                        <GradientStop Color="#7C3AED" Offset="0"/>
+                        <GradientStop Color="Transparent" Offset="1"/>
+                    </RadialGradientBrush>
+                </Ellipse.Fill>
+                <Ellipse.Triggers>
+                    <EventTrigger RoutedEvent="Ellipse.Loaded">
+                        <BeginStoryboard>
+                            <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                <DoubleAnimation Storyboard.TargetProperty="(Canvas.Left)"
+                                                 From="-100" To="80" Duration="0:0:18">
+                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetProperty="(Canvas.Top)"
+                                                 From="-200" To="-80" Duration="0:0:22">
+                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Ellipse.Triggers>
+            </Ellipse>
+            <Ellipse x:Name="Blob2" Width="500" Height="500"
+                     Canvas.Right="-80" Canvas.Bottom="-100" Opacity="0.04">
+                <Ellipse.Fill>
+                    <RadialGradientBrush>
+                        <GradientStop Color="#EC4899" Offset="0"/>
+                        <GradientStop Color="Transparent" Offset="1"/>
+                    </RadialGradientBrush>
+                </Ellipse.Fill>
+                <Ellipse.Triggers>
+                    <EventTrigger RoutedEvent="Ellipse.Loaded">
+                        <BeginStoryboard>
+                            <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                <DoubleAnimation Storyboard.TargetProperty="(Canvas.Right)"
+                                                 From="-80" To="60" Duration="0:0:20">
+                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                                <DoubleAnimation Storyboard.TargetProperty="(Canvas.Bottom)"
+                                                 From="-100" To="40" Duration="0:0:16">
+                                    <DoubleAnimation.EasingFunction><SineEase EasingMode="EaseInOut"/></DoubleAnimation.EasingFunction>
+                                </DoubleAnimation>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </EventTrigger>
+                </Ellipse.Triggers>
+            </Ellipse>
+        </Canvas>
+
         <!-- ── Top Navigation Bar ─────────────────────────────────────────── -->
         <Border Grid.Row="0"
                 Background="{DynamicResource NavBackgroundBrush}"
                 BorderBrush="{DynamicResource NavBorderBrush}"
                 BorderThickness="0,0,0,1"
-                Height="56">
-            <Grid Margin="24,0">
-                <!-- subtle live indicator (pulsing) -->
-                <Ellipse x:Name="LiveIndicator"
-                         Width="8" Height="8"
-                         HorizontalAlignment="Right"
-                         VerticalAlignment="Center"
-                         Margin="0,0,82,0"
-                         Fill="{DynamicResource TextSecondaryBrush}"
-                         IsHitTestVisible="False">
-                    <Ellipse.RenderTransform>
-                        <ScaleTransform ScaleX="1" ScaleY="1"/>
-                    </Ellipse.RenderTransform>
-                    <Ellipse.Triggers>
-                        <EventTrigger RoutedEvent="Ellipse.Loaded">
-                            <BeginStoryboard>
-                                <Storyboard RepeatBehavior="Forever" AutoReverse="True">
-                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
-                                                     From="0.25" To="0.85" Duration="0:0:1.2"/>
-                                    <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleX"
-                                                     From="1" To="1.6" Duration="0:0:1.2"/>
-                                    <DoubleAnimation Storyboard.TargetProperty="RenderTransform.ScaleY"
-                                                     From="1" To="1.6" Duration="0:0:1.2"/>
-                                </Storyboard>
-                            </BeginStoryboard>
-                        </EventTrigger>
-                    </Ellipse.Triggers>
-                </Ellipse>
-
+                Height="58">
+            <Border.Effect>
+                <DropShadowEffect Color="#000000" Opacity="0.08" BlurRadius="12" ShadowDepth="2"/>
+            </Border.Effect>
+            <Grid Margin="28,0">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
@@ -56,59 +87,73 @@
 
                 <!-- Logo -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                    <Image Source="pack://application:,,,/Resources/Icons/logo.png"
-                           Width="28" Height="28"
-                           RenderOptions.BitmapScalingMode="HighQuality"
-                           Margin="0,0,10,0"/>
-                    <TextBlock Text="Nime Vault" FontSize="15.5" FontWeight="SemiBold"
+                    <Border Width="32" Height="32" CornerRadius="8" Margin="0,0,10,0">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                <GradientStop Color="#7C3AED" Offset="0"/>
+                                <GradientStop Color="#EC4899" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                        <Image Source="pack://application:,,,/Resources/Icons/logo.png"
+                               Width="20" Height="20"
+                               RenderOptions.BitmapScalingMode="HighQuality"/>
+                    </Border>
+                    <TextBlock Text="Nime Vault" FontSize="16" FontWeight="Bold"
                                Foreground="{DynamicResource TextPrimaryBrush}"
                                VerticalAlignment="Center"/>
                 </StackPanel>
 
-                <!-- Centre nav — Tag bound to *NavTag so active underbar fires -->
+                <!-- Centre nav -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Center">
-
                     <Button Style="{StaticResource NavButton}"
                             Tag="{Binding HomeNavTag}"
                             Command="{Binding NavigateHomeCommand}">
                         <TextBlock Text="Home"
                                    Foreground="{Binding IsHomePage, Converter={StaticResource BoolToActiveNav}}"/>
                     </Button>
-
                     <Button Style="{StaticResource NavButton}"
                             Tag="{Binding SearchNavTag}"
                             Command="{Binding NavigateSearchCommand}">
                         <TextBlock Text="Search"
                                    Foreground="{Binding IsSearchPage, Converter={StaticResource BoolToActiveNav}}"/>
                     </Button>
-
                     <Button Style="{StaticResource NavButton}"
                             Tag="{Binding DownloadsNavTag}"
                             Command="{Binding NavigateDownloadsCommand}">
                         <TextBlock Text="Downloads"
                                    Foreground="{Binding IsDownloadsPage, Converter={StaticResource BoolToActiveNav}}"/>
                     </Button>
-
                     <Button Style="{StaticResource NavButton}"
                             Tag="{Binding QueueNavTag}"
                             Command="{Binding NavigateQueueCommand}">
                         <TextBlock Text="Queue"
                                    Foreground="{Binding IsQueuePage, Converter={StaticResource BoolToActiveNav}}"/>
                     </Button>
-
                     <Button Style="{StaticResource NavButton}"
                             Tag="{Binding SettingsNavTag}"
                             Command="{Binding NavigateSettingsCommand}">
                         <TextBlock Text="Settings"
                                    Foreground="{Binding IsSettingsPage, Converter={StaticResource BoolToActiveNav}}"/>
                     </Button>
-
                 </StackPanel>
 
                 <!-- Right controls -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!-- Live pulse dot -->
+                    <Ellipse x:Name="LiveDot" Width="7" Height="7" Fill="#22C55E"
+                             VerticalAlignment="Center" Margin="0,0,12,0">
+                        <Ellipse.Triggers>
+                            <EventTrigger RoutedEvent="Ellipse.Loaded">
+                                <BeginStoryboard>
+                                    <Storyboard RepeatBehavior="Forever" AutoReverse="True">
+                                        <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                         From="0.3" To="1" Duration="0:0:1.4"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                        </Ellipse.Triggers>
+                    </Ellipse>
 
-                    <!-- Search icon -->
                     <Button Style="{StaticResource IconButton}"
                             Command="{Binding NavigateSearchIconCommand}"
                             ToolTip="Search">
@@ -124,19 +169,16 @@
                         </Viewbox>
                     </Button>
 
-                    <!-- Theme toggle — moon=light mode, sun=dark mode -->
                     <Button Style="{StaticResource IconButton}"
                             Command="{Binding ToggleThemeCommand}"
                             ToolTip="{Binding IsDarkTheme, Converter={StaticResource ThemeToggleTip}}"
                             Margin="4,0,0,0">
                         <Viewbox Width="18" Height="18">
                             <Canvas Width="24" Height="24">
-                                <!-- Moon: show when in light mode (switch to dark) -->
                                 <Path Visibility="{Binding IsDarkTheme, Converter={StaticResource InverseBoolToVisibility}}"
                                       Data="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"
                                       Stroke="{DynamicResource TextSecondaryBrush}"
                                       StrokeThickness="1.8" Fill="Transparent"/>
-                                <!-- Sun: show when in dark mode (switch to light) -->
                                 <Path Visibility="{Binding IsDarkTheme, Converter={StaticResource BoolToVisibility}}"
                                       Data="M12 2v2M12 20v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M2 12h2M20 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42M17 12a5 5 0 1 1-10 0 5 5 0 0 1 10 0z"
                                       Stroke="{DynamicResource TextSecondaryBrush}"
@@ -145,36 +187,154 @@
                             </Canvas>
                         </Viewbox>
                     </Button>
-
                 </StackPanel>
             </Grid>
         </Border>
 
-        <!-- ── Page Content ───────────────────────────────────────────────── -->
+        <!-- ── Page Content with fade transition ─────────────────────────── -->
         <Grid Grid.Row="1">
-            <views:HomeView
-                DataContext="{Binding HomeVM}"
-                Visibility="{Binding IsHomePage, Converter={StaticResource BoolToVisibility}}"/>
+            <Border HorizontalAlignment="Stretch" Background="Transparent"
+                    DataContext="{Binding DataContext, RelativeSource={RelativeSource AncestorType=Window}}">
+                <Grid>
+                    <views:HomeView
+                        DataContext="{Binding HomeVM}"
+                        Visibility="{Binding DataContext.IsHomePage, ElementName=RootWindow, Converter={StaticResource BoolToVisibility}}">
+                        <views:HomeView.Style>
+                            <Style TargetType="UserControl">
+                                <Style.Triggers>
+                                    <Trigger Property="Visibility" Value="Visible">
+                                        <Trigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                     From="0" To="1" Duration="0:0:0.3">
+                                                        <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                    </DoubleAnimation>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </Trigger.EnterActions>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </views:HomeView.Style>
+                    </views:HomeView>
 
-            <views:SearchView
-                DataContext="{Binding SearchVM}"
-                Visibility="{Binding IsSearchPage, Converter={StaticResource BoolToVisibility}}"/>
+                    <views:SearchView
+                        DataContext="{Binding SearchVM}"
+                        Visibility="{Binding DataContext.IsSearchPage, ElementName=RootWindow, Converter={StaticResource BoolToVisibility}}">
+                        <views:SearchView.Style>
+                            <Style TargetType="UserControl">
+                                <Style.Triggers>
+                                    <Trigger Property="Visibility" Value="Visible">
+                                        <Trigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                     From="0" To="1" Duration="0:0:0.3">
+                                                        <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                    </DoubleAnimation>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </Trigger.EnterActions>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </views:SearchView.Style>
+                    </views:SearchView>
 
-            <views:AnimeDetailsView
-                DataContext="{Binding AnimeDetailsVM}"
-                Visibility="{Binding IsDetailsPage, Converter={StaticResource BoolToVisibility}}"/>
+                    <views:AnimeDetailsView
+                        DataContext="{Binding AnimeDetailsVM}"
+                        Visibility="{Binding DataContext.IsDetailsPage, ElementName=RootWindow, Converter={StaticResource BoolToVisibility}}">
+                        <views:AnimeDetailsView.Style>
+                            <Style TargetType="UserControl">
+                                <Style.Triggers>
+                                    <Trigger Property="Visibility" Value="Visible">
+                                        <Trigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                     From="0" To="1" Duration="0:0:0.3">
+                                                        <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                    </DoubleAnimation>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </Trigger.EnterActions>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </views:AnimeDetailsView.Style>
+                    </views:AnimeDetailsView>
 
-            <views:DownloadsView
-                DataContext="{Binding DownloadsVM}"
-                Visibility="{Binding IsDownloadsPage, Converter={StaticResource BoolToVisibility}}"/>
+                    <views:DownloadsView
+                        DataContext="{Binding DownloadsVM}"
+                        Visibility="{Binding DataContext.IsDownloadsPage, ElementName=RootWindow, Converter={StaticResource BoolToVisibility}}">
+                        <views:DownloadsView.Style>
+                            <Style TargetType="UserControl">
+                                <Style.Triggers>
+                                    <Trigger Property="Visibility" Value="Visible">
+                                        <Trigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                     From="0" To="1" Duration="0:0:0.3">
+                                                        <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                    </DoubleAnimation>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </Trigger.EnterActions>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </views:DownloadsView.Style>
+                    </views:DownloadsView>
 
-            <views:QueueView
-                DataContext="{Binding QueueVM}"
-                Visibility="{Binding IsQueuePage, Converter={StaticResource BoolToVisibility}}"/>
+                    <views:QueueView
+                        DataContext="{Binding QueueVM}"
+                        Visibility="{Binding DataContext.IsQueuePage, ElementName=RootWindow, Converter={StaticResource BoolToVisibility}}">
+                        <views:QueueView.Style>
+                            <Style TargetType="UserControl">
+                                <Style.Triggers>
+                                    <Trigger Property="Visibility" Value="Visible">
+                                        <Trigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                     From="0" To="1" Duration="0:0:0.3">
+                                                        <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                    </DoubleAnimation>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </Trigger.EnterActions>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </views:QueueView.Style>
+                    </views:QueueView>
 
-            <views:SettingsView
-                DataContext="{Binding SettingsVM}"
-                Visibility="{Binding IsSettingsPage, Converter={StaticResource BoolToVisibility}}"/>
+                    <views:SettingsView
+                        DataContext="{Binding SettingsVM}"
+                        Visibility="{Binding DataContext.IsSettingsPage, ElementName=RootWindow, Converter={StaticResource BoolToVisibility}}">
+                        <views:SettingsView.Style>
+                            <Style TargetType="UserControl">
+                                <Style.Triggers>
+                                    <Trigger Property="Visibility" Value="Visible">
+                                        <Trigger.EnterActions>
+                                            <BeginStoryboard>
+                                                <Storyboard>
+                                                    <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                                     From="0" To="1" Duration="0:0:0.3">
+                                                        <DoubleAnimation.EasingFunction><CubicEase EasingMode="EaseOut"/></DoubleAnimation.EasingFunction>
+                                                    </DoubleAnimation>
+                                                </Storyboard>
+                                            </BeginStoryboard>
+                                        </Trigger.EnterActions>
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </views:SettingsView.Style>
+                    </views:SettingsView>
+                </Grid>
+            </Border>
         </Grid>
 
         <!-- ── Toast overlay ──────────────────────────────────────────────── -->
