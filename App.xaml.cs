@@ -36,7 +36,6 @@ namespace NimeVault
             services.AddSingleton<DownloadsViewModel>();
             services.AddSingleton<QueueViewModel>();
             services.AddSingleton<SettingsViewModel>();
-            services.AddSingleton<LockViewModel>();
             services.AddSingleton<MainViewModel>();
 
             Services = services.BuildServiceProvider();

@@ -11,8 +11,7 @@ namespace NimeVault.ViewModels
         AnimeDetails,
         Downloads,
         Queue,
-        Settings,
-        Lock
+        Settings
     }
 
     public class MainViewModel : BaseViewModel
@@ -28,7 +27,6 @@ namespace NimeVault.ViewModels
         public DownloadsViewModel DownloadsVM { get; }
         public QueueViewModel QueueVM { get; }
         public SettingsViewModel SettingsVM { get; }
-        public LockViewModel LockVM { get; }
 
         public AppPage CurrentPage
         {
@@ -41,7 +39,6 @@ namespace NimeVault.ViewModels
                 OnPropertyChanged(nameof(IsDownloadsPage));
                 OnPropertyChanged(nameof(IsQueuePage));
                 OnPropertyChanged(nameof(IsSettingsPage));
-                OnPropertyChanged(nameof(IsLockPage));
                 OnPropertyChanged(nameof(IsDetailsPage));
             }
         }
@@ -52,7 +49,6 @@ namespace NimeVault.ViewModels
         public bool IsDownloadsPage => CurrentPage == AppPage.Downloads;
         public bool IsQueuePage => CurrentPage == AppPage.Queue;
         public bool IsSettingsPage => CurrentPage == AppPage.Settings;
-        public bool IsLockPage => CurrentPage == AppPage.Lock;
 
         public bool IsDarkTheme
         {
@@ -65,7 +61,6 @@ namespace NimeVault.ViewModels
         public ICommand NavigateDownloadsCommand { get; }
         public ICommand NavigateQueueCommand { get; }
         public ICommand NavigateSettingsCommand { get; }
-        public ICommand ToggleLockCommand { get; }
         public ICommand ToggleThemeCommand { get; }
         public ICommand NavigateSearchIconCommand { get; }
 
@@ -76,8 +71,7 @@ namespace NimeVault.ViewModels
             AnimeDetailsViewModel animeDetailsVM,
             DownloadsViewModel downloadsVM,
             QueueViewModel queueVM,
-            SettingsViewModel settingsVM,
-            LockViewModel lockVM)
+            SettingsViewModel settingsVM)
         {
             _themeService = themeService;
 
@@ -87,7 +81,6 @@ namespace NimeVault.ViewModels
             DownloadsVM = downloadsVM;
             QueueVM = queueVM;
             SettingsVM = settingsVM;
-            LockVM = lockVM;
 
             NavigateHomeCommand = new RelayCommand(() => NavigateTo(AppPage.Home));
             NavigateSearchCommand = new RelayCommand(() => NavigateTo(AppPage.Search));
@@ -95,17 +88,6 @@ namespace NimeVault.ViewModels
             NavigateQueueCommand = new RelayCommand(() => NavigateTo(AppPage.Queue));
             NavigateSettingsCommand = new RelayCommand(() => NavigateTo(AppPage.Settings));
             NavigateSearchIconCommand = new RelayCommand(() => NavigateTo(AppPage.Search));
-
-            ToggleLockCommand = new RelayCommand(() =>
-            {
-                if (CurrentPage == AppPage.Lock)
-                    NavigateTo(_previousPage);
-                else
-                {
-                    _previousPage = CurrentPage;
-                    NavigateTo(AppPage.Lock);
-                }
-            });
 
             ToggleThemeCommand = new RelayCommand(() =>
             {
@@ -118,16 +100,14 @@ namespace NimeVault.ViewModels
                 IsDarkTheme = theme == AppTheme.Dark;
             };
 
-            // Wire up sub-VM navigation
             HomeVM.NavigationRequested += (_, anime) => NavigateToDetails(anime);
             SearchVM.AnimeSelected += (_, anime) => NavigateToDetails(anime);
             AnimeDetailsVM.BackRequested += (_, _) => NavigateTo(_previousPage);
-            LockVM.UnlockRequested += (_, _) => NavigateTo(_previousPage);
         }
 
         private void NavigateTo(AppPage page)
         {
-            if (CurrentPage != AppPage.Lock && CurrentPage != AppPage.AnimeDetails)
+            if (CurrentPage != AppPage.AnimeDetails)
                 _previousPage = CurrentPage;
             CurrentPage = page;
         }
