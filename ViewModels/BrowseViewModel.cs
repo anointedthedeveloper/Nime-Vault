@@ -63,7 +63,7 @@ namespace NimeVault.ViewModels
 
         private async Task LoadTopAsync()
         {
-            if (_search is not AniWavesSearchService aws) return;
+            if (_search is not IBrowseProvider aws) return;
             var items = await aws.GetTopAnimeAsync(_topPeriod);
             TopAnime.Clear();
             foreach (var a in items) TopAnime.Add(a);
@@ -71,7 +71,7 @@ namespace NimeVault.ViewModels
 
         private async Task LoadLatestAsync()
         {
-            if (_search is not AniWavesSearchService aws) return;
+            if (_search is not IBrowseProvider aws) return;
             var items = await aws.GetLatestEpisodesAsync(_latestTab);
             LatestAnime.Clear();
             foreach (var a in items) LatestAnime.Add(a);
@@ -79,7 +79,7 @@ namespace NimeVault.ViewModels
 
         private async Task LoadSectionsAsync()
         {
-            if (_search is not AniWavesSearchService aws) return;
+            if (_search is not IBrowseProvider aws) return;
             var (nr, na, jc) = await (aws.GetNewReleaseAsync(), aws.GetNewAddedAsync(), aws.GetJustCompletedAsync())
                 .WhenAll3();
             NewRelease.Clear();    foreach (var a in nr) NewRelease.Add(a);

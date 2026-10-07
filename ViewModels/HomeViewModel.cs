@@ -74,7 +74,7 @@ namespace NimeVault.ViewModels
             try
             {
                 // Spotlight slides
-                if (_searchService is AniWavesSearchService aws)
+                if (_searchService is IBrowseProvider aws)
                 {
                     var spotlight = await aws.GetSpotlightAsync();
                     SpotlightAnime.Clear();

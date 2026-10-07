@@ -31,22 +31,16 @@ namespace NimeVault
                 services.AddSingleton<NotificationService>();
                 services.AddSingleton<INotificationService>(p => p.GetRequiredService<NotificationService>());
 
-                // Real anime data services (aniwaves.ru)
-                services.AddSingleton<IAnimeSearchService, AniWavesSearchService>();
-                services.AddSingleton<IAnimeDetailsService, AniWavesDetailsService>();
-
                 // AnimePahe provider (search, details, episodes, downloads)
                 services.AddSingleton<AnimePaheClient>(_ => new AnimePaheClient { ChallengeSolver = new WebView2ChallengeSolver() });
                 services.AddSingleton<KwikResolver>();
+                services.AddSingleton<IAnimeDetailsService, AnimePaheDetailsService>();
+                services.AddSingleton<IAnimeSearchService, AnimePaheSearchService>();
                 services.AddSingleton<IDownloadService, AnimePaheDownloadService>();
                 services.AddSingleton<IDownloadQueueService, DownloadQueueService>();
 
-                // Real stream + download services
+                // In-app player stream resolver
                 services.AddSingleton<IStreamService, PlaywrightStreamService>();
-                services.AddSingleton<IDownloadService, HlsDownloadService>();
-
-                // Queue service (still uses the real queue logic, just with real download service)
-                services.AddSingleton<IDownloadQueueService, MockDownloadQueueService>();
 
                 // ViewModels
                 services.AddSingleton<HomeViewModel>();

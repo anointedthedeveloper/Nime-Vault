@@ -78,7 +78,7 @@ class H(BaseHTTPRequestHandler):
                 data = [{"id": 1, "anime_id": 1, "anime_title": ANIME["title"], "episode": 35, "snapshot": "http://animepahe.test/snap/1.jpg",
                          "session": "sess-ep-35", "anime_session": "sess-anime-1", "fansub": "SubsPlease"},
                         {"id": 2, "anime_id": 2, "anime_title": OTHER["title"], "episode": 3, "snapshot": "http://animepahe.test/snap/2.jpg",
-                         "session": "sess-ep-x", "anime_session": "sess-anime-2", "fansub": "SubsPlease"}]
+                         "session": "sess-ep-x", "anime_session": "sess-anime-2", "fansub": "SubsPlease", "audio": "eng"}]
                 return self.send(200, json.dumps({"total": 2, "per_page": 12, "current_page": int(q.get("page", 1)), "last_page": 2, "data": data}), "application/json")
             if m == "release":
                 if q.get("id") != "sess-anime-1": return self.send(200, json.dumps({"total": 0, "last_page": 1, "data": []}), "application/json")
@@ -86,6 +86,10 @@ class H(BaseHTTPRequestHandler):
                 return self.send(200, json.dumps({"total": 35, "per_page": per, "current_page": page, "last_page": 2,
                                                   "data": EPISODES[(page - 1) * per: page * per]}), "application/json")
             return self.send(404)
+        if p == "/anime":
+            rows = [("11111111-aaaa-bbbb-cccc-000000000001", "Alpha Quest"), ("11111111-aaaa-bbbb-cccc-000000000002", "Apple &amp; Orange"),
+                    ("11111111-aaaa-bbbb-cccc-000000000003", "Beta Squad"), ("11111111-aaaa-bbbb-cccc-000000000004", "91 Days")]
+            return self.send(200, "<html><body>" + "".join(f'<div class="col"><a href="/anime/{u}" title="{t}">{t}</a></div>' for u, t in rows) + "</body></html>")
         if p == "/anime/sess-anime-1": return self.send(200, anime_page())
         if p.startswith("/play/"): return self.send(200, play_page(*p.split("/")[2:4]))
         if re.fullmatch(r"/pk\d", p):

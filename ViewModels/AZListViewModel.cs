@@ -34,7 +34,7 @@ namespace NimeVault.ViewModels
 
         public async Task LoadAsync()
         {
-            if (_search is not AniWavesSearchService aws) return;
+            if (_search is not IBrowseProvider aws) return;
             IsLoading = true;
             try
             {

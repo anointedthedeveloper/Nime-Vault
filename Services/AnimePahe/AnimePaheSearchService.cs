@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using NimeVault.Models;
@@ -9,7 +11,7 @@ using NimeVault.Services.Interfaces;
 
 namespace NimeVault.Services.AnimePahe
 {
-    public class AnimePaheSearchService : IAnimeSearchService
+    public class AnimePaheSearchService : IAnimeSearchService, IBrowseProvider
     {
         private readonly AnimePaheClient _client;
         private readonly IAnimeDetailsService _details;
@@ -56,7 +58,7 @@ namespace NimeVault.Services.AnimePahe
         }
 
         // Currently-airing releases, newest first. One entry per anime.
-        private async Task<List<Anime>> GetAiringAsync(int page, CancellationToken ct)
+        internal async Task<List<Anime>> GetAiringAsync(int page, CancellationToken ct)
         {
             using var doc = await _client.GetApiAsync($"m=airing&page={page}", ct);
             var list = new List<Anime>();
@@ -80,7 +82,8 @@ namespace NimeVault.Services.AnimePahe
                         BackgroundUrl = snapshot,
                         Status = "Currently Airing",
                         TotalEpisodes = AnimePaheClient.Int(item, "episode"),
-                        HasSub = true
+                        HasSub = !AnimePaheClient.Str(item, "audio").Equals("eng", StringComparison.OrdinalIgnoreCase),
+                        HasDub = AnimePaheClient.Str(item, "audio").Equals("eng", StringComparison.OrdinalIgnoreCase)
                     };
                     _client.AnimeCache[session] = anime;
                 }
@@ -145,6 +148,78 @@ namespace NimeVault.Services.AnimePahe
             var full = await _details.GetDetailsAsync(first.Id, cancellationToken) ?? first;
             full.IsFeatured = true;
             return full;
+        }
+
+        // ---- IBrowseProvider: AnimePahe has no dedicated endpoints, so these are built from the airing feed ----
+
+        public async Task<List<Anime>> GetSpotlightAsync(CancellationToken ct = default)
+        {
+            var top = (await GetAiringAsync(1, ct)).Take(5).ToList();
+            var full = await Task.WhenAll(top.Select(async a =>
+            {
+                try { return await _details.GetDetailsAsync(a.Id, ct) ?? a; }
+                catch (OperationCanceledException) { throw; }
+                catch { return a; }
+            }));
+            foreach (var a in full) a.IsFeatured = true;
+            return full.ToList();
+        }
+
+        public async Task<List<Anime>> GetLatestEpisodesAsync(string tab = "updated", CancellationToken ct = default)
+        {
+            switch (tab)
+            {
+                case "subbed": return (await GetAiringAsync(1, ct)).Where(a => !a.HasDub).ToList();
+                case "dubbed":
+                    var both = (await GetAiringAsync(1, ct)).Concat(await GetAiringAsync(2, ct));
+                    return both.Where(a => a.HasDub).DistinctBy(a => a.Id).ToList();
+                case "trending": return await GetAiringAsync(2, ct);
+                default: return await GetAiringAsync(1, ct);
+            }
+        }
+
+        public Task<List<Anime>> GetTopAnimeAsync(string period = "today", CancellationToken ct = default)
+            => GetAiringAsync(period == "month" ? 3 : period == "week" ? 2 : 1, ct);
+
+        public Task<List<Anime>> GetNewReleaseAsync(CancellationToken ct = default) => GetAiringAsync(1, ct);
+        public Task<List<Anime>> GetNewAddedAsync(CancellationToken ct = default) => GetAiringAsync(2, ct);
+        public Task<List<Anime>> GetJustCompletedAsync(CancellationToken ct = default) => GetAiringAsync(3, ct);
+
+        private List<(string Session, string Title)>? _index;
+
+        public async Task<List<Anime>> GetAZListAsync(string letter = "A", CancellationToken ct = default)
+        {
+            // /anime lists every title; the markup is parsed loosely (any /anime/<uuid> link with a title).
+            _index ??= await LoadIndexAsync(ct);
+            bool Matches(string title)
+            {
+                var c = title.TrimStart().FirstOrDefault();
+                return letter == "#" || letter == "0-9" ? !char.IsLetter(c)
+                    : char.ToUpperInvariant(c) == char.ToUpperInvariant(letter[0]);
+            }
+
+            var list = _index.Where(i => Matches(i.Title)).Take(60).Select(i =>
+                _client.AnimeCache.TryGetValue(i.Session, out var cached)
+                    ? cached
+                    : new Anime { Id = i.Session, Title = i.Title, HasSub = true }).ToList();
+            foreach (var a in list) _client.AnimeCache.TryAdd(a.Id, a);
+            await EnrichPostersAsync(list.Take(24).ToList(), ct);
+            return list;
+        }
+
+        private async Task<List<(string, string)>> LoadIndexAsync(CancellationToken ct)
+        {
+            var html = await _client.GetStringAsync("/anime", ct);
+            var seen = new HashSet<string>();
+            var items = new List<(string, string)>();
+            foreach (Match m in Regex.Matches(html,
+                @"<a[^>]+href=""/anime/([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})""[^>]*>\s*([^<]+?)\s*</a>",
+                RegexOptions.IgnoreCase))
+            {
+                var title = WebUtility.HtmlDecode(m.Groups[2].Value);
+                if (title.Length > 0 && seen.Add(m.Groups[1].Value)) items.Add((m.Groups[1].Value, title));
+            }
+            return items.OrderBy(i => i.Item2, StringComparer.OrdinalIgnoreCase).ToList();
         }
     }
 }

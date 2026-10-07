@@ -4,11 +4,20 @@ using NimeVault.Services.Interfaces;
 
 // Usage: dotnet run --project tools/ProviderCheck -- "naruto"
 // Walks the AnimePahe flow step by step and prints what each step returned.
-var words = args.Where(a => !a.StartsWith("--")).ToArray();
+string? Opt(string name) { var i = Array.IndexOf(args, name); return i >= 0 && i + 1 < args.Length ? args[i + 1] : null; }
+var optValues = new[] { Opt("--cookie"), Opt("--ua") }.Where(v => v != null).ToHashSet();
+var words = args.Where(a => !a.StartsWith("--") && !optValues.Contains(a)).ToArray();
 var query = words.Length > 0 ? string.Join(' ', words) : "naruto";
 var ct = CancellationToken.None;
 var client = new AnimePaheClient();
 if (args.Contains("--challenge")) client.ChallengeSolver = new FakeSolver();
+// Real-site testing: paste the Cookie header and User-Agent from a browser that already opened the site.
+if (Opt("--cookie") is { } cookieHeader)
+{
+    var baseUrl = await client.GetBaseUrlAsync(CancellationToken.None);
+    client.ImportBrowserSession(baseUrl, cookieHeader, Opt("--ua"));
+    Console.WriteLine($"Imported browser session for {baseUrl}");
+}
 var details = new AnimePaheDetailsService(client);
 var search = new AnimePaheSearchService(client, details);
 var kwik = new KwikResolver(client);
@@ -59,6 +68,21 @@ await Step("Home feeds (recent / popular / featured)", async () =>
     foreach (var a in recent) Console.WriteLine($"  recent: {a.Title} | poster {a.PosterUrl}");
     Console.WriteLine($"  popular: {popular.Count}, featured: {featured?.Title} ({featured?.Description.Length} chars)");
     if (recent.Count == 0 || featured == null) throw new Exception("empty home feed");
+});
+
+await Step("Browse listings (spotlight / latest tabs / top / A-Z)", async () =>
+{
+    IBrowseProvider b = search;
+    var spot = await b.GetSpotlightAsync(ct);
+    var subbed = await b.GetLatestEpisodesAsync("subbed", ct);
+    var dubbed = await b.GetLatestEpisodesAsync("dubbed", ct);
+    var top = await b.GetTopAnimeAsync("week", ct);
+    var az = await b.GetAZListAsync("A", ct);
+    var digits = await b.GetAZListAsync("#", ct);
+    Console.WriteLine($"  spotlight={spot.Count} subbed={subbed.Count} dubbed={dubbed.Count} top(week)={top.Count}");
+    Console.WriteLine($"  A: {string.Join(", ", az.Select(a => a.Title))}");
+    Console.WriteLine($"  #: {string.Join(", ", digits.Select(a => a.Title))}");
+    if (spot.Count == 0) throw new Exception("no spotlight");
 });
 
 DownloadOption? choice = null;

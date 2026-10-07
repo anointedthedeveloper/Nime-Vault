@@ -97,24 +97,60 @@ namespace NimeVault.Services.AnimePahe
                 if (await IsChallengeAsync(res))
                 {
                     if (attempt == 0 && await TrySolveChallengeAsync(url, ct)) continue;
-                    throw new HttpRequestException(
-                        "AnimePahe's anti-bot check was not passed. Complete the check in the browser window and try again.");
+                    var why = await DescribeAsync(res);
+                    throw new HttpRequestException(ChallengeSolver == null
+                        ? $"AnimePahe refused the request ({why}). A browser session is needed to pass its anti-bot check."
+                        : $"AnimePahe's anti-bot check was not passed ({why}). Complete the check in the browser window and try again.");
                 }
 
-                res.EnsureSuccessStatusCode();
+                if (!res.IsSuccessStatusCode)
+                    throw new HttpRequestException($"AnimePahe request failed ({await DescribeAsync(res)}).");
                 return await res.Content.ReadAsStringAsync(ct);
             }
         }
 
-        public static async Task<bool> IsChallengeAsync(HttpResponseMessage res)
+        // A 403/503 from AnimePahe is almost always an anti-bot wall (Cloudflare / DDoS-Guard) that a real
+        // browser session can clear, so both are treated as a challenge.
+        public static Task<bool> IsChallengeAsync(HttpResponseMessage res)
+            => Task.FromResult(res.StatusCode == HttpStatusCode.Forbidden || res.StatusCode == HttpStatusCode.ServiceUnavailable);
+
+        /// <summary>Short human-readable summary of a failed response: status, server, page title.</summary>
+        public static async Task<string> DescribeAsync(HttpResponseMessage res)
         {
-            if (res.StatusCode != HttpStatusCode.Forbidden && res.StatusCode != HttpStatusCode.ServiceUnavailable)
-                return false;
-            if (res.Headers.TryGetValues("cf-mitigated", out _)) return true;
-            var body = await res.Content.ReadAsStringAsync();
-            return body.Contains("Just a moment", StringComparison.OrdinalIgnoreCase)
-                || body.Contains("cf-chl", StringComparison.OrdinalIgnoreCase)
-                || body.Contains("DDoS-Guard", StringComparison.OrdinalIgnoreCase);
+            var server = res.Headers.TryGetValues("Server", out var v) ? string.Join(",", v) : "unknown server";
+            var mitigated = res.Headers.TryGetValues("cf-mitigated", out var m) ? $", cf-mitigated={string.Join(",", m)}" : "";
+            string title = "";
+            try
+            {
+                var body = await res.Content.ReadAsStringAsync();
+                var t = System.Text.RegularExpressions.Regex.Match(body, @"<title>(.*?)</title>",
+                    System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.Singleline);
+                if (t.Success) title = $", page \"{t.Groups[1].Value.Trim()}\"";
+            }
+            catch { }
+            return $"HTTP {(int)res.StatusCode} from {res.RequestMessage?.RequestUri?.Host}, {server}{mitigated}{title}";
+        }
+
+        /// <summary>
+        /// Adopts a session cleared in a real browser (copied from its dev tools): the Cookie header
+        /// value and the exact User-Agent, since clearance cookies are bound to both.
+        /// </summary>
+        public void ImportBrowserSession(string url, string cookieHeader, string? userAgent)
+        {
+            var uri = new Uri(url);
+            foreach (var part in cookieHeader.Split(';', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+            {
+                var eq = part.IndexOf('=');
+                if (eq <= 0) continue;
+                try { _cookies.Add(uri, new Cookie(part[..eq].Trim(), part[(eq + 1)..].Trim(), "/", uri.Host)); }
+                catch (CookieException) { }
+            }
+            if (!string.IsNullOrWhiteSpace(userAgent))
+            {
+                CurrentUserAgent = userAgent;
+                Http.DefaultRequestHeaders.UserAgent.Clear();
+                Http.DefaultRequestHeaders.UserAgent.ParseAdd(userAgent);
+            }
         }
 
         /// <summary>Opens the browser solver (once at a time) and adopts its cookies + User-Agent.</summary>
