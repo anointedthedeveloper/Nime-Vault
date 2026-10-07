@@ -23,7 +23,7 @@ namespace NimeVault.Services.AnimePahe
 
         private readonly CookieContainer _cookies = new();
         private readonly SemaphoreSlim _hostLock = new(1, 1);
-        private string _baseUrl = DefaultBaseUrl;
+        private string _baseUrl = Environment.GetEnvironmentVariable("ANIMEPAHE_BASE_URL")?.TrimEnd('/') ?? DefaultBaseUrl;
         private bool _hostResolved;
 
         public HttpClient Http { get; }
@@ -58,7 +58,7 @@ namespace NimeVault.Services.AnimePahe
                 if (_hostResolved) return _baseUrl;
                 try
                 {
-                    using var res = await Http.GetAsync(DefaultBaseUrl + "/", HttpCompletionOption.ResponseHeadersRead, ct);
+                    using var res = await Http.GetAsync(_baseUrl + "/", HttpCompletionOption.ResponseHeadersRead, ct);
                     var final = res.RequestMessage?.RequestUri;
                     if (final != null) _baseUrl = $"{final.Scheme}://{final.Host}";
                 }

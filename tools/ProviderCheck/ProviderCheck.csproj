@@ -7,10 +7,14 @@
     <RootNamespace>ProviderCheck</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\..\Services\AnimePahe\AnimePaheClient.cs;..\..\Services\AnimePahe\AnimePaheDetailsService.cs;..\..\Services\AnimePahe\AnimePaheSearchService.cs;..\..\Services\AnimePahe\KwikResolver.cs" />
+    <Compile Include="..\..\Services\AnimePahe\AnimePaheClient.cs;..\..\Services\AnimePahe\AnimePaheDetailsService.cs;..\..\Services\AnimePahe\AnimePaheSearchService.cs;..\..\Services\AnimePahe\KwikResolver.cs;..\..\Services\AnimePahe\AnimePaheDownloadService.cs" />
     <Compile Include="..\..\Services\Interfaces\IAnimeSearchService.cs" />
     <Compile Include="..\..\Services\Interfaces\IAnimeDetailsService.cs" />
+    <Compile Include="..\..\Services\Interfaces\IDownloadService.cs" />
+    <Compile Include="..\..\Services\Interfaces\ISettingsService.cs" />
     <Compile Include="..\..\Models\Anime.cs" />
+    <Compile Include="..\..\Models\AppSettings.cs" />
+    <Compile Include="..\..\Models\DownloadItem.cs" />
     <Compile Include="..\..\Models\Episode.cs" />
   </ItemGroup>
 </Project>
