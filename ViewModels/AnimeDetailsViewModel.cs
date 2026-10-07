@@ -74,6 +74,11 @@ namespace NimeVault.ViewModels
                 Episodes.Clear();
                 foreach (var ep in eps) Episodes.Add(ep);
             }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                _notifications.ShowError($"Couldn't load anime: {ex.Message}");
+            }
             finally { IsLoading = false; }
         }
 

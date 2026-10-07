@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NimeVault.Models;
@@ -10,6 +11,7 @@ namespace NimeVault.ViewModels
     public class HomeViewModel : BaseViewModel
     {
         private readonly IAnimeSearchService _searchService;
+        private readonly IAnimeDetailsService _detailsService;
         private readonly IDownloadQueueService _queueService;
         private readonly INotificationService _notifications;
 
@@ -30,10 +32,12 @@ namespace NimeVault.ViewModels
 
         public HomeViewModel(
             IAnimeSearchService searchService,
+            IAnimeDetailsService detailsService,
             IDownloadQueueService queueService,
             INotificationService notifications)
         {
             _searchService = searchService;
+            _detailsService = detailsService;
             _queueService  = queueService;
             _notifications = notifications;
 
@@ -57,6 +61,11 @@ namespace NimeVault.ViewModels
                 RecentlyAdded.Clear();
                 foreach (var a in recent) RecentlyAdded.Add(a);
             }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                _notifications.ShowError($"Couldn't load AnimePahe: {ex.Message}");
+            }
             finally
             {
                 IsLoading = false;
@@ -72,19 +81,32 @@ namespace NimeVault.ViewModels
         private async Task AddFeaturedToQueueAsync(Anime? anime)
         {
             if (anime == null) return;
-            // Queue Episode 1 of the featured anime as a quick-add
+            // Queue the first episode of the anime as a quick-add
+            System.Collections.Generic.List<Episode> episodes;
+            try { episodes = await _detailsService.GetEpisodesAsync(anime.Id); }
+            catch (Exception ex)
+            {
+                _notifications.ShowError($"Couldn't load episodes: {ex.Message}");
+                return;
+            }
+            var first = episodes.OrderBy(e => e.Number).FirstOrDefault();
+            if (first == null)
+            {
+                _notifications.ShowError($"No episodes found for {anime.Title}");
+                return;
+            }
             var item = new DownloadItem
             {
                 AnimeId       = anime.Id,
-                EpisodeId     = $"{anime.Id}-ep-1",
+                EpisodeId     = first.Id,
                 AnimeTitle    = anime.Title,
-                EpisodeTitle  = "Episode 1",
-                EpisodeNumber = 1,
+                EpisodeTitle  = first.Title,
+                EpisodeNumber = first.Number,
                 Language      = "SUB",
                 PosterUrl     = anime.PosterUrl
             };
             await _queueService.EnqueueAsync(item);
-            _notifications.ShowSuccess($"Added {anime.Title} Ep 1 to queue");
+            _notifications.ShowSuccess($"Added {anime.Title} Ep {first.Number} to queue");
         }
     }
 }
