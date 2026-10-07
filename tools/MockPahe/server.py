@@ -6,6 +6,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import urlparse, parse_qs
 
 PORT = int(sys.argv[1]) if len(sys.argv) > 1 else 80
+CHALLENGE = "--challenge" in sys.argv  # demand a cf_clearance cookie like Cloudflare would
 FILE_SIZE = 8_000_000
 KEY, RADIX, SHIFT = "abcdefghi", 8, 5
 ANIME = {"id": 1, "title": "Test Hero Academy", "type": "TV", "episodes": 35, "status": "Finished Airing",
@@ -59,7 +60,13 @@ class H(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(body)))
         for k, v in (extra or {}).items(): self.send_header(k, v)
         self.end_headers(); self.wfile.write(body)
+    def challenged(self):
+        if CHALLENGE and "cf_clearance=ok" not in (self.headers.get("Cookie") or "") and not self.path.startswith("/files/"):
+            self.send(403, "<html><head><title>Just a moment...</title></head></html>", extra={"cf-mitigated": "challenge"})
+            return True
+        return False
     def do_GET(self):
+        if self.challenged(): return
         u = urlparse(self.path); q = {k: v[0] for k, v in parse_qs(u.query).items()}; p = u.path
         if p == "/api":
             m = q.get("m")

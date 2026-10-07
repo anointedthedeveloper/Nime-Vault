@@ -32,7 +32,7 @@ namespace NimeVault
             services.AddSingleton<INotificationService>(p => p.GetRequiredService<NotificationService>());
 
             // AnimePahe provider (search, details, episodes, downloads)
-            services.AddSingleton<AnimePaheClient>();
+            services.AddSingleton<AnimePaheClient>(_ => new AnimePaheClient { ChallengeSolver = new WebView2ChallengeSolver() });
             services.AddSingleton<KwikResolver>();
             services.AddSingleton<IAnimeDetailsService, AnimePaheDetailsService>();
             services.AddSingleton<IAnimeSearchService, AnimePaheSearchService>();

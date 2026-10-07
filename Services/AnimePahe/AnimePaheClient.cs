@@ -9,6 +9,13 @@ using NimeVault.Models;
 
 namespace NimeVault.Services.AnimePahe
 {
+    /// <summary>Passes an anti-bot challenge in a real browser and copies the resulting cookies into the jar.</summary>
+    public interface IChallengeSolver
+    {
+        /// <returns>The browser's User-Agent on success (cookies are bound to it), or null if not solved.</returns>
+        Task<string?> SolveAsync(string url, CookieContainer jar, CancellationToken ct);
+    }
+
     /// <summary>
     /// Shared HTTP plumbing for the AnimePahe provider: one cookie-aware HttpClient,
     /// the site's JSON API, and a cache of anime metadata seen in search/airing results.
@@ -25,6 +32,12 @@ namespace NimeVault.Services.AnimePahe
         private readonly SemaphoreSlim _hostLock = new(1, 1);
         private string _baseUrl = Environment.GetEnvironmentVariable("ANIMEPAHE_BASE_URL")?.TrimEnd('/') ?? DefaultBaseUrl;
         private bool _hostResolved;
+
+        private readonly SemaphoreSlim _solveLock = new(1, 1);
+        private DateTime _lastSolve = DateTime.MinValue;
+
+        public IChallengeSolver? ChallengeSolver { get; set; }
+        public string CurrentUserAgent { get; private set; } = UserAgent;
 
         public HttpClient Http { get; }
         public CookieContainer Cookies => _cookies;
@@ -75,16 +88,58 @@ namespace NimeVault.Services.AnimePahe
                 ? pathOrUrl
                 : await GetBaseUrlAsync(ct) + pathOrUrl;
 
-            using var req = new HttpRequestMessage(HttpMethod.Get, url);
-            if (referer != null) req.Headers.Referrer = new Uri(referer);
-            using var res = await Http.SendAsync(req, ct);
+            for (int attempt = 0; ; attempt++)
+            {
+                using var req = new HttpRequestMessage(HttpMethod.Get, url);
+                if (referer != null) req.Headers.Referrer = new Uri(referer);
+                using var res = await Http.SendAsync(req, ct);
 
-            if (res.StatusCode == HttpStatusCode.Forbidden || res.StatusCode == HttpStatusCode.ServiceUnavailable)
-                throw new HttpRequestException(
-                    "AnimePahe blocked the request (anti-bot challenge). Try again in a moment, or check the site opens in your browser.");
+                if (await IsChallengeAsync(res))
+                {
+                    if (attempt == 0 && await TrySolveChallengeAsync(url, ct)) continue;
+                    throw new HttpRequestException(
+                        "AnimePahe's anti-bot check was not passed. Complete the check in the browser window and try again.");
+                }
 
-            res.EnsureSuccessStatusCode();
-            return await res.Content.ReadAsStringAsync(ct);
+                res.EnsureSuccessStatusCode();
+                return await res.Content.ReadAsStringAsync(ct);
+            }
+        }
+
+        public static async Task<bool> IsChallengeAsync(HttpResponseMessage res)
+        {
+            if (res.StatusCode != HttpStatusCode.Forbidden && res.StatusCode != HttpStatusCode.ServiceUnavailable)
+                return false;
+            if (res.Headers.TryGetValues("cf-mitigated", out _)) return true;
+            var body = await res.Content.ReadAsStringAsync();
+            return body.Contains("Just a moment", StringComparison.OrdinalIgnoreCase)
+                || body.Contains("cf-chl", StringComparison.OrdinalIgnoreCase)
+                || body.Contains("DDoS-Guard", StringComparison.OrdinalIgnoreCase);
+        }
+
+        /// <summary>Opens the browser solver (once at a time) and adopts its cookies + User-Agent.</summary>
+        public async Task<bool> TrySolveChallengeAsync(string url, CancellationToken ct)
+        {
+            var solver = ChallengeSolver;
+            if (solver == null) return false;
+
+            var started = DateTime.UtcNow;
+            await _solveLock.WaitAsync(ct);
+            try
+            {
+                // Another caller solved while we waited for the lock: just retry with the new cookies.
+                if (_lastSolve > started) return true;
+
+                var ua = await solver.SolveAsync(url, _cookies, ct);
+                if (ua == null) return false;
+
+                CurrentUserAgent = ua;
+                Http.DefaultRequestHeaders.UserAgent.Clear();
+                Http.DefaultRequestHeaders.UserAgent.ParseAdd(ua);
+                _lastSolve = DateTime.UtcNow;
+                return true;
+            }
+            finally { _solveLock.Release(); }
         }
 
         public async Task<JsonDocument> GetApiAsync(string query, CancellationToken ct)

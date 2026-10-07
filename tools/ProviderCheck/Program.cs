@@ -8,6 +8,7 @@ var words = args.Where(a => !a.StartsWith("--")).ToArray();
 var query = words.Length > 0 ? string.Join(' ', words) : "naruto";
 var ct = CancellationToken.None;
 var client = new AnimePaheClient();
+if (args.Contains("--challenge")) client.ChallengeSolver = new FakeSolver();
 var details = new AnimePaheDetailsService(client);
 var search = new AnimePaheSearchService(client, details);
 var kwik = new KwikResolver(client);
@@ -169,4 +170,21 @@ class StubSettings : ISettingsService
     public StubSettings(string dir) => Settings = new AppSettings { DownloadLocation = dir };
     public Task SaveAsync() => Task.CompletedTask;
     public Task LoadAsync() => Task.CompletedTask;
+}
+
+// Stands in for the WebView2 window: "passes" the check by supplying the cookie the mock demands.
+class FakeSolver : IChallengeSolver
+{
+    public int Calls;
+    public Task<string?> SolveAsync(string url, System.Net.CookieContainer jar, CancellationToken ct)
+    {
+        Calls++;
+        Console.WriteLine($"  [solver invoked for {new Uri(url).Host}]");
+        var host = new Uri(url).Host;
+        jar.Add(new System.Net.Cookie("cf_clearance", "ok", "/", host));
+        // pahe.test / kwik.test are separate sites with their own clearance in real life
+        foreach (var h in new[] { "pahe.test", "kwik.test", "animepahe.test" })
+            jar.Add(new System.Net.Cookie("cf_clearance", "ok", "/", h));
+        return Task.FromResult<string?>("FakeBrowser/1.0");
+    }
 }

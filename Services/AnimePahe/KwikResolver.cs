@@ -32,7 +32,6 @@ namespace NimeVault.Services.AnimePahe
                 AutomaticDecompression = DecompressionMethods.All
             };
             _noRedirect = new HttpClient(handler) { Timeout = TimeSpan.FromSeconds(60) };
-            _noRedirect.DefaultRequestHeaders.UserAgent.ParseAdd(AnimePaheClient.UserAgent);
         }
 
         public async Task<List<DownloadOption>> GetOptionsAsync(string animeId, string episodeId, CancellationToken ct)
@@ -82,18 +81,25 @@ namespace NimeVault.Services.AnimePahe
         {
             // 1. pahe.win page -> kwik /f/ url (sometimes delivered as a redirect)
             string kwikUrl;
-            using (var req = new HttpRequestMessage(HttpMethod.Get, option.PaheUrl))
-            using (var res = await _noRedirect.SendAsync(req, ct))
+            for (int attempt = 0; ; attempt++)
             {
-                var loc = res.Headers.Location?.ToString();
-                if (loc != null && Regex.IsMatch(loc, @"kwik\.[a-z]+/f/")) kwikUrl = loc;
-                else
+                using var req = new HttpRequestMessage(HttpMethod.Get, option.PaheUrl);
+                req.Headers.UserAgent.ParseAdd(_client.CurrentUserAgent);
+                using var res = await _noRedirect.SendAsync(req, ct);
+
+                if (await AnimePaheClient.IsChallengeAsync(res))
                 {
-                    var body = await res.Content.ReadAsStringAsync(ct);
-                    var m = Regex.Match(body, @"https?://kwik\.[a-z]+/f/[\w\-]+");
-                    if (!m.Success) throw new InvalidOperationException("kwik link not found on pahe page.");
-                    kwikUrl = m.Value;
+                    if (attempt == 0 && await _client.TrySolveChallengeAsync(option.PaheUrl, ct)) continue;
+                    throw new InvalidOperationException("pahe.win anti-bot check was not passed.");
                 }
+
+                var loc = res.Headers.Location?.ToString();
+                if (loc != null && Regex.IsMatch(loc, @"kwik\.[a-z]+/f/")) { kwikUrl = loc; break; }
+                var body = await res.Content.ReadAsStringAsync(ct);
+                var m = Regex.Match(body, @"https?://kwik\.[a-z]+/f/[\w\-]+");
+                if (!m.Success) throw new InvalidOperationException("kwik link not found on pahe page.");
+                kwikUrl = m.Value;
+                break;
             }
 
             // 2. kwik page -> form action + token (packed JS)
@@ -106,6 +112,7 @@ namespace NimeVault.Services.AnimePahe
                 Content = new FormUrlEncodedContent(new[] { new KeyValuePair<string, string>("_token", token) })
             };
             post.Headers.Referrer = new Uri(kwikUrl);
+            post.Headers.UserAgent.ParseAdd(_client.CurrentUserAgent);
             using var postRes = await _noRedirect.SendAsync(post, ct);
             var file = postRes.Headers.Location?.ToString();
             if (string.IsNullOrEmpty(file))
