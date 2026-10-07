@@ -97,6 +97,11 @@ namespace NimeVault.ViewModels
                 OnPropertyChanged(nameof(CanNextPage));
                 OnPropertyChanged(nameof(PageLabel));
             }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                _notifications.ShowError($"Couldn't load anime: {ex.Message}");
+            }
             finally { IsLoading = false; }
         }
 

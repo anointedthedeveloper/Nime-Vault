@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using System.Windows.Threading;
@@ -12,6 +13,7 @@ namespace NimeVault.ViewModels
     public class HomeViewModel : BaseViewModel
     {
         private readonly IAnimeSearchService _searchService;
+        private readonly IAnimeDetailsService _detailsService;
         private readonly IDownloadQueueService _queueService;
         private readonly INotificationService _notifications;
         private readonly DispatcherTimer _spotlightTimer;
@@ -48,10 +50,12 @@ namespace NimeVault.ViewModels
 
         public HomeViewModel(
             IAnimeSearchService searchService,
+            IAnimeDetailsService detailsService,
             IDownloadQueueService queueService,
             INotificationService notifications)
         {
             _searchService = searchService;
+            _detailsService = detailsService;
             _queueService  = queueService;
             _notifications = notifications;
 
@@ -89,6 +93,11 @@ namespace NimeVault.ViewModels
                 var recent = await _searchService.GetRecentlyAddedAsync();
                 RecentlyAdded.Clear();
                 foreach (var a in recent) RecentlyAdded.Add(a);
+            }
+            catch (OperationCanceledException) { }
+            catch (Exception ex)
+            {
+                _notifications.ShowError($"Couldn't load AnimePahe: {ex.Message}");
             }
             finally { IsLoading = false; }
         }

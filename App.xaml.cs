@@ -4,7 +4,7 @@ using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using NimeVault.Services;
 using NimeVault.Services.Interfaces;
-using NimeVault.Services.Mock;
+using NimeVault.Services.AnimePahe;
 using NimeVault.ViewModels;
 
 namespace NimeVault
@@ -34,6 +34,12 @@ namespace NimeVault
                 // Real anime data services (aniwaves.ru)
                 services.AddSingleton<IAnimeSearchService, AniWavesSearchService>();
                 services.AddSingleton<IAnimeDetailsService, AniWavesDetailsService>();
+
+                // AnimePahe provider (search, details, episodes, downloads)
+                services.AddSingleton<AnimePaheClient>(_ => new AnimePaheClient { ChallengeSolver = new WebView2ChallengeSolver() });
+                services.AddSingleton<KwikResolver>();
+                services.AddSingleton<IDownloadService, AnimePaheDownloadService>();
+                services.AddSingleton<IDownloadQueueService, DownloadQueueService>();
 
                 // Real stream + download services
                 services.AddSingleton<IStreamService, PlaywrightStreamService>();
