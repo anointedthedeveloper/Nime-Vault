@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using NimeVault.Models;
 using NimeVault.Services.Interfaces;
 
-namespace NimeVault.Services.Mock
+namespace NimeVault.Services
 {
-    public class MockDownloadQueueService : IDownloadQueueService
+    public class DownloadQueueService : IDownloadQueueService
     {
         private readonly IDownloadService _downloadService;
         private readonly ObservableCollection<QueueItem> _queue = new();
@@ -23,7 +23,7 @@ namespace NimeVault.Services.Mock
         public IReadOnlyList<DownloadItem> ActiveDownloads => _activeDownloads;
         public IReadOnlyList<DownloadItem> CompletedDownloads => _completedDownloads;
 
-        public MockDownloadQueueService(IDownloadService downloadService, ISettingsService settingsService)
+        public DownloadQueueService(IDownloadService downloadService, ISettingsService settingsService)
         {
             _downloadService = downloadService;
             _settings = settingsService.Settings;

@@ -4,7 +4,7 @@ using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using NimeVault.Services;
 using NimeVault.Services.Interfaces;
-using NimeVault.Services.Mock;
+using NimeVault.Services.AnimePahe;
 using NimeVault.ViewModels;
 
 namespace NimeVault
@@ -31,11 +31,13 @@ namespace NimeVault
             services.AddSingleton<NotificationService>();
             services.AddSingleton<INotificationService>(p => p.GetRequiredService<NotificationService>());
 
-            // Mock services (swap for real implementations later)
-            services.AddSingleton<IAnimeSearchService, MockAnimeSearchService>();
-            services.AddSingleton<IAnimeDetailsService, MockAnimeDetailsService>();
-            services.AddSingleton<IDownloadService, MockDownloadService>();
-            services.AddSingleton<IDownloadQueueService, MockDownloadQueueService>();
+            // AnimePahe provider (search, details, episodes, downloads)
+            services.AddSingleton<AnimePaheClient>();
+            services.AddSingleton<KwikResolver>();
+            services.AddSingleton<IAnimeDetailsService, AnimePaheDetailsService>();
+            services.AddSingleton<IAnimeSearchService, AnimePaheSearchService>();
+            services.AddSingleton<IDownloadService, AnimePaheDownloadService>();
+            services.AddSingleton<IDownloadQueueService, DownloadQueueService>();
 
             // ViewModels
             services.AddSingleton<HomeViewModel>();
