@@ -4,7 +4,8 @@ using NimeVault.Services.Interfaces;
 
 // Usage: dotnet run --project tools/ProviderCheck -- "naruto"
 // Walks the AnimePahe flow step by step and prints what each step returned.
-var query = args.Length > 0 ? string.Join(' ', args) : "naruto";
+var words = args.Where(a => !a.StartsWith("--")).ToArray();
+var query = words.Length > 0 ? string.Join(' ', words) : "naruto";
 var ct = CancellationToken.None;
 var client = new AnimePaheClient();
 var details = new AnimePaheDetailsService(client);
