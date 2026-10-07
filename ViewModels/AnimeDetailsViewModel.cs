@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NimeVault.Models;
@@ -16,6 +18,9 @@ namespace NimeVault.ViewModels
         private Anime? _anime;
         private bool _isLoading;
         private bool _isSubSelected = true;
+        private List<Episode> _allEpisodes = new();
+        private int _currentPage = 1;
+        private const int PageSize = 20;
 
         public Anime? Anime     { get => _anime;     set => SetField(ref _anime,     value); }
         public bool IsLoading   { get => _isLoading; set => SetField(ref _isLoading, value); }
@@ -23,27 +28,36 @@ namespace NimeVault.ViewModels
         public bool IsSubSelected
         {
             get => _isSubSelected;
-            set
-            {
-                SetField(ref _isSubSelected, value);
-                OnPropertyChanged(nameof(IsDubSelected));
-                OnPropertyChanged(nameof(SelectedLanguage));
-            }
+            set { SetField(ref _isSubSelected, value); OnPropertyChanged(nameof(IsDubSelected)); OnPropertyChanged(nameof(SelectedLanguage)); }
         }
         public bool IsDubSelected    => !_isSubSelected;
         public string SelectedLanguage => _isSubSelected ? "SUB" : "DUB";
 
+        public int CurrentPage
+        {
+            get => _currentPage;
+            set { SetField(ref _currentPage, value); RefreshPage(); OnPropertyChanged(nameof(TotalPages)); OnPropertyChanged(nameof(CanPrevPage)); OnPropertyChanged(nameof(CanNextPage)); OnPropertyChanged(nameof(PageLabel)); }
+        }
+        public int TotalPages  => (int)Math.Ceiling(_allEpisodes.Count / (double)PageSize);
+        public bool CanPrevPage => _currentPage > 1;
+        public bool CanNextPage => _currentPage < TotalPages;
+        public string PageLabel => TotalPages > 0 ? $"Page {_currentPage} / {TotalPages}" : "";
+
         public ObservableCollection<Episode> Episodes { get; } = new();
 
-        public ICommand LoadCommand             { get; }
-        public ICommand SelectSubCommand        { get; }
-        public ICommand SelectDubCommand        { get; }
-        public ICommand DownloadEpisodeCommand  { get; }
+        public ICommand LoadCommand              { get; }
+        public ICommand SelectSubCommand         { get; }
+        public ICommand SelectDubCommand         { get; }
+        public ICommand DownloadEpisodeCommand   { get; }
         public ICommand AddEpisodeToQueueCommand { get; }
-        public ICommand AddAllToQueueCommand    { get; }
-        public ICommand GoBackCommand           { get; }
+        public ICommand AddAllToQueueCommand     { get; }
+        public ICommand GoBackCommand            { get; }
+        public ICommand WatchEpisodeCommand      { get; }
+        public ICommand PrevPageCommand          { get; }
+        public ICommand NextPageCommand          { get; }
 
         public event EventHandler? BackRequested;
+        public event EventHandler<(Episode ep, string language)>? WatchRequested;
 
         public AnimeDetailsViewModel(
             IAnimeDetailsService detailsService,
@@ -61,20 +75,38 @@ namespace NimeVault.ViewModels
             AddEpisodeToQueueCommand = new AsyncRelayCommand<Episode>(AddEpisodeToQueueAsync);
             AddAllToQueueCommand     = new AsyncRelayCommand(AddAllToQueueAsync);
             GoBackCommand            = new RelayCommand(() => BackRequested?.Invoke(this, EventArgs.Empty));
+            WatchEpisodeCommand      = new RelayCommand<Episode>(ep => { if (ep != null) WatchRequested?.Invoke(this, (ep, SelectedLanguage)); });
+            PrevPageCommand          = new RelayCommand(() => { if (CanPrevPage) CurrentPage--; });
+            NextPageCommand          = new RelayCommand(() => { if (CanNextPage) CurrentPage++; });
         }
 
         public async Task LoadAsync(string? animeId)
         {
             if (string.IsNullOrWhiteSpace(animeId)) return;
             IsLoading = true;
+            _allEpisodes.Clear();
+            Episodes.Clear();
+            _currentPage = 1;
             try
             {
                 Anime = await _detailsService.GetDetailsAsync(animeId);
-                var eps = await _detailsService.GetEpisodesAsync(animeId);
-                Episodes.Clear();
-                foreach (var ep in eps) Episodes.Add(ep);
+                _allEpisodes = await _detailsService.GetEpisodesAsync(animeId);
+                RefreshPage();
+                OnPropertyChanged(nameof(TotalPages));
+                OnPropertyChanged(nameof(CanPrevPage));
+                OnPropertyChanged(nameof(CanNextPage));
+                OnPropertyChanged(nameof(PageLabel));
             }
             finally { IsLoading = false; }
+        }
+
+        private void RefreshPage()
+        {
+            Episodes.Clear();
+            var page = _allEpisodes
+                .Skip((_currentPage - 1) * PageSize)
+                .Take(PageSize);
+            foreach (var ep in page) Episodes.Add(ep);
         }
 
         private async Task DownloadEpisodeAsync(Episode? ep)
@@ -93,10 +125,9 @@ namespace NimeVault.ViewModels
 
         private async Task AddAllToQueueAsync()
         {
-            if (Anime == null || Episodes.Count == 0) return;
-            foreach (var ep in Episodes)
-                await Enqueue(ep);
-            _notifications.ShowSuccess($"Added all {Episodes.Count} episodes to queue");
+            if (Anime == null || _allEpisodes.Count == 0) return;
+            foreach (var ep in _allEpisodes) await Enqueue(ep);
+            _notifications.ShowSuccess($"Added all {_allEpisodes.Count} episodes to queue");
         }
 
         private async Task Enqueue(Episode ep)
@@ -115,7 +146,6 @@ namespace NimeVault.ViewModels
         }
     }
 
-    // Generic async relay command — placed here to avoid a separate file
     public class AsyncRelayCommand<T> : ICommand
     {
         private readonly Func<T?, Task> _execute;
@@ -123,10 +153,7 @@ namespace NimeVault.ViewModels
         private bool _isExecuting;
 
         public AsyncRelayCommand(Func<T?, Task> execute, Func<T?, bool>? canExecute = null)
-        {
-            _execute    = execute;
-            _canExecute = canExecute;
-        }
+        { _execute = execute; _canExecute = canExecute; }
 
         public event EventHandler? CanExecuteChanged
         {
@@ -145,16 +172,8 @@ namespace NimeVault.ViewModels
         {
             _isExecuting = true;
             CommandManager.InvalidateRequerySuggested();
-            try
-            {
-                if (parameter is T t) await _execute(t);
-                else await _execute(default);
-            }
-            finally
-            {
-                _isExecuting = false;
-                CommandManager.InvalidateRequerySuggested();
-            }
+            try { if (parameter is T t) await _execute(t); else await _execute(default); }
+            finally { _isExecuting = false; CommandManager.InvalidateRequerySuggested(); }
         }
     }
 }

@@ -2,7 +2,9 @@ using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Threading;
 using NimeVault.Models;
+using NimeVault.Services;
 using NimeVault.Services.Interfaces;
 
 namespace NimeVault.ViewModels
@@ -12,19 +14,35 @@ namespace NimeVault.ViewModels
         private readonly IAnimeSearchService _searchService;
         private readonly IDownloadQueueService _queueService;
         private readonly INotificationService _notifications;
+        private readonly DispatcherTimer _spotlightTimer;
 
-        private Anime? _featuredAnime;
         private bool _isLoading;
+        private int _spotlightIndex;
+        private Anime? _currentSpotlight;
 
-        public Anime? FeaturedAnime { get => _featuredAnime; set => SetField(ref _featuredAnime, value); }
-        public bool IsLoading       { get => _isLoading;     set => SetField(ref _isLoading,     value); }
+        public bool IsLoading { get => _isLoading; set => SetField(ref _isLoading, value); }
 
-        public ObservableCollection<Anime> PopularAnime  { get; } = new();
-        public ObservableCollection<Anime> RecentlyAdded { get; } = new();
+        public Anime? CurrentSpotlight { get => _currentSpotlight; set => SetField(ref _currentSpotlight, value); }
 
-        public ICommand LoadCommand      { get; }
+        public int SpotlightIndex
+        {
+            get => _spotlightIndex;
+            set
+            {
+                SetField(ref _spotlightIndex, value);
+                if (SpotlightAnime.Count > 0 && value >= 0 && value < SpotlightAnime.Count)
+                    CurrentSpotlight = SpotlightAnime[value];
+            }
+        }
+
+        public ObservableCollection<Anime> SpotlightAnime { get; } = new();
+        public ObservableCollection<Anime> PopularAnime   { get; } = new();
+        public ObservableCollection<Anime> RecentlyAdded  { get; } = new();
+
+        public ICommand LoadCommand        { get; }
         public ICommand ViewDetailsCommand { get; }
-        public ICommand AddToQueueCommand { get; }
+        public ICommand SpotlightNextCommand { get; }
+        public ICommand SpotlightPrevCommand { get; }
 
         public event EventHandler<Anime>? NavigationRequested;
 
@@ -37,9 +55,13 @@ namespace NimeVault.ViewModels
             _queueService  = queueService;
             _notifications = notifications;
 
-            LoadCommand       = new AsyncRelayCommand(LoadAsync);
-            ViewDetailsCommand = new RelayCommand<Anime>(NavigateToDetails);
-            AddToQueueCommand  = new AsyncRelayCommand<Anime>(AddFeaturedToQueueAsync);
+            LoadCommand          = new AsyncRelayCommand(LoadAsync);
+            ViewDetailsCommand   = new RelayCommand<Anime>(a => { if (a != null) NavigationRequested?.Invoke(this, a); });
+            SpotlightNextCommand = new RelayCommand(SpotlightNext);
+            SpotlightPrevCommand = new RelayCommand(SpotlightPrev);
+
+            _spotlightTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(5) };
+            _spotlightTimer.Tick += (_, _) => SpotlightNext();
         }
 
         public async Task LoadAsync()
@@ -47,44 +69,40 @@ namespace NimeVault.ViewModels
             IsLoading = true;
             try
             {
-                FeaturedAnime = await _searchService.GetFeaturedAsync();
+                // Spotlight slides
+                if (_searchService is AniWavesSearchService aws)
+                {
+                    var spotlight = await aws.GetSpotlightAsync();
+                    SpotlightAnime.Clear();
+                    foreach (var a in spotlight) SpotlightAnime.Add(a);
+                    SpotlightIndex = 0;
+                    CurrentSpotlight = SpotlightAnime.Count > 0 ? SpotlightAnime[0] : null;
+                    if (SpotlightAnime.Count > 1) _spotlightTimer.Start();
+                }
 
+                // Popular (latest episode section)
                 var popular = await _searchService.GetPopularAsync();
                 PopularAnime.Clear();
                 foreach (var a in popular) PopularAnime.Add(a);
 
+                // Recently added
                 var recent = await _searchService.GetRecentlyAddedAsync();
                 RecentlyAdded.Clear();
                 foreach (var a in recent) RecentlyAdded.Add(a);
             }
-            finally
-            {
-                IsLoading = false;
-            }
+            finally { IsLoading = false; }
         }
 
-        private void NavigateToDetails(Anime? anime)
+        private void SpotlightNext()
         {
-            if (anime != null)
-                NavigationRequested?.Invoke(this, anime);
+            if (SpotlightAnime.Count == 0) return;
+            SpotlightIndex = (SpotlightIndex + 1) % SpotlightAnime.Count;
         }
 
-        private async Task AddFeaturedToQueueAsync(Anime? anime)
+        private void SpotlightPrev()
         {
-            if (anime == null) return;
-            // Queue Episode 1 of the featured anime as a quick-add
-            var item = new DownloadItem
-            {
-                AnimeId       = anime.Id,
-                EpisodeId     = $"{anime.Id}-ep-1",
-                AnimeTitle    = anime.Title,
-                EpisodeTitle  = "Episode 1",
-                EpisodeNumber = 1,
-                Language      = "SUB",
-                PosterUrl     = anime.PosterUrl
-            };
-            await _queueService.EnqueueAsync(item);
-            _notifications.ShowSuccess($"Added {anime.Title} Ep 1 to queue");
+            if (SpotlightAnime.Count == 0) return;
+            SpotlightIndex = (SpotlightIndex - 1 + SpotlightAnime.Count) % SpotlightAnime.Count;
         }
     }
 }

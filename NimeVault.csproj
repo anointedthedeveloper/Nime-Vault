@@ -13,11 +13,19 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="9.0.0" />
+    <PackageReference Include="HtmlAgilityPack" Version="1.11.71" />
+    <PackageReference Include="Microsoft.Playwright" Version="1.49.0" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3124.44" />
   </ItemGroup>
 
   <ItemGroup>
     <Resource Include="Resources\Icons\app.ico"/>
     <Resource Include="Resources\Icons\logo.png"/>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="covers\*.png"/>
+    <Content Include="covers\*.png" CopyToOutputDirectory="PreserveNewest"/>
   </ItemGroup>
 
   <PropertyGroup>

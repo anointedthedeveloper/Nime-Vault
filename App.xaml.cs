@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,53 +25,57 @@ namespace NimeVault
 
                 var services = new ServiceCollection();
 
-            // Core services
-            services.AddSingleton<ISettingsService, SettingsService>();
-            services.AddSingleton<IThemeService, ThemeService>();
-            services.AddSingleton<NotificationService>();
-            services.AddSingleton<INotificationService>(p => p.GetRequiredService<NotificationService>());
+                // Core services
+                services.AddSingleton<ISettingsService, SettingsService>();
+                services.AddSingleton<IThemeService, ThemeService>();
+                services.AddSingleton<NotificationService>();
+                services.AddSingleton<INotificationService>(p => p.GetRequiredService<NotificationService>());
 
-            // Mock services (swap for real implementations later)
-            services.AddSingleton<IAnimeSearchService, MockAnimeSearchService>();
-            services.AddSingleton<IAnimeDetailsService, MockAnimeDetailsService>();
-            services.AddSingleton<IDownloadService, MockDownloadService>();
-            services.AddSingleton<IDownloadQueueService, MockDownloadQueueService>();
+                // Real anime data services (aniwaves.ru)
+                services.AddSingleton<IAnimeSearchService, AniWavesSearchService>();
+                services.AddSingleton<IAnimeDetailsService, AniWavesDetailsService>();
 
-            // ViewModels
-            services.AddSingleton<HomeViewModel>();
-            services.AddSingleton<SearchViewModel>();
-            services.AddSingleton<AnimeDetailsViewModel>();
-            services.AddSingleton<DownloadsViewModel>();
-            services.AddSingleton<QueueViewModel>();
-            services.AddSingleton<SettingsViewModel>();
-            services.AddSingleton<MainViewModel>();
+                // Real stream + download services
+                services.AddSingleton<IStreamService, PlaywrightStreamService>();
+                services.AddSingleton<IDownloadService, HlsDownloadService>();
 
-            Services = services.BuildServiceProvider();
+                // Queue service (still uses the real queue logic, just with real download service)
+                services.AddSingleton<IDownloadQueueService, MockDownloadQueueService>();
 
-            // Load persisted settings first
-            var settingsService = Services.GetRequiredService<ISettingsService>();
-            await settingsService.LoadAsync();
+                // ViewModels
+                services.AddSingleton<HomeViewModel>();
+                services.AddSingleton<SearchViewModel>();
+                services.AddSingleton<BrowseViewModel>();
+                services.AddSingleton<AZListViewModel>();
+                services.AddSingleton<AnimeDetailsViewModel>();
+                services.AddSingleton<DownloadsViewModel>();
+                services.AddSingleton<QueueViewModel>();
+                services.AddSingleton<SettingsViewModel>();
+                services.AddSingleton<PlayerViewModel>();
+                services.AddSingleton<MainViewModel>();
 
-            // Apply saved theme (handles System theme via registry)
-            var themeService = Services.GetRequiredService<IThemeService>();
-            themeService.ApplyTheme(settingsService.Settings.Theme);
+                Services = services.BuildServiceProvider();
 
-            // Register a global UI exception handler
-            DispatcherUnhandledException += App_DispatcherUnhandledException;
+                var settingsService = Services.GetRequiredService<ISettingsService>();
+                await settingsService.LoadAsync();
 
-            // Show main window
-            var mainWindow = new Views.MainWindow();
-            mainWindow.DataContext = Services.GetRequiredService<MainViewModel>();
-            mainWindow.Show();
-            Log("Main window shown");
+                var themeService = Services.GetRequiredService<IThemeService>();
+                themeService.ApplyTheme(settingsService.Settings.Theme);
+
+                DispatcherUnhandledException += App_DispatcherUnhandledException;
+
+                var mainWindow = new Views.MainWindow();
+                mainWindow.DataContext = Services.GetRequiredService<MainViewModel>();
+                mainWindow.Show();
+                Log("Main window shown");
+            }
+            catch (Exception ex)
+            {
+                Log($"Startup failure: {ex}");
+                System.Windows.MessageBox.Show(ex.Message, "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
+                Shutdown();
+            }
         }
-        catch (Exception ex)
-        {
-            Log($"Startup failure: {ex}");
-            System.Windows.MessageBox.Show(ex.Message, "Startup Error", MessageBoxButton.OK, MessageBoxImage.Error);
-            Shutdown();
-        }
-    }
 
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
@@ -88,11 +92,23 @@ namespace NimeVault
             Shutdown();
         }
 
+        private static readonly string _logPath = Path.Combine(AppContext.BaseDirectory, "startup-log.txt");
+        private static bool _logInitialized;
+
         private static void Log(string message)
         {
             try
             {
-                File.AppendAllText(Path.Combine(AppContext.BaseDirectory, "startup-log.txt"), $"[{DateTime.Now:O}] {message}{Environment.NewLine}");
+                var line = $"[{DateTime.Now:O}] {message}{Environment.NewLine}";
+                if (!_logInitialized)
+                {
+                    File.WriteAllText(_logPath, line);
+                    _logInitialized = true;
+                }
+                else
+                {
+                    File.AppendAllText(_logPath, line);
+                }
             }
             catch { }
         }

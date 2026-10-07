@@ -137,7 +137,7 @@
 
     <!-- Primary Button -->
     <Style x:Key="PrimaryButton" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
-        <Setter Property="Background" Value="{StaticResource BrandPrimaryBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource BrandPrimaryBrush}"/>
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="FontWeight" Value="SemiBold"/>
         <Setter Property="Effect">
@@ -173,7 +173,7 @@
 
     <!-- Small Button -->
     <Style x:Key="SmallButton" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
-        <Setter Property="Background" Value="{StaticResource BrandPrimaryBrush}"/>
+        <Setter Property="Background" Value="{DynamicResource BrandPrimaryBrush}"/>
         <Setter Property="Foreground" Value="White"/>
         <Setter Property="FontSize" Value="11"/>
         <Setter Property="Padding" Value="10,5"/>
@@ -183,81 +183,43 @@
     <!-- Danger Button -->
     <Style x:Key="DangerButton" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
         <Setter Property="Background" Value="Transparent"/>
-        <Setter Property="Foreground" Value="{StaticResource ErrorBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource ErrorBrush}"/>
         <Setter Property="FontSize" Value="11"/>
         <Setter Property="Padding" Value="8,5"/>
     </Style>
 
-    <!-- Nav Button with animated underbar -->
+    <!-- Nav Button — clean pill style, active = purple bg, hover = subtle bg -->
     <Style x:Key="NavButton" TargetType="Button">
         <Setter Property="Background" Value="Transparent"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Cursor" Value="Hand"/>
         <Setter Property="FontFamily" Value="{StaticResource PrimaryFont}"/>
-        <Setter Property="FontSize" Value="13.5"/>
+        <Setter Property="FontSize" Value="13"/>
         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-        <Setter Property="Padding" Value="14,0"/>
-        <Setter Property="Height" Value="56"/>
+        <Setter Property="Padding" Value="14,6"/>
+        <Setter Property="Height" Value="34"/>
+        <Setter Property="RenderTransformOrigin" Value="0.5,0.5"/>
+        <Setter Property="RenderTransform"><Setter.Value><ScaleTransform/></Setter.Value></Setter>
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="Button">
-                    <Border x:Name="Root" Background="Transparent" Padding="{TemplateBinding Padding}">
-                        <Grid>
-                            <Border x:Name="HoverBg" Background="{DynamicResource HoverBrush}"
-                                    CornerRadius="6" Opacity="0" Margin="0,8"/>
-                            <Border x:Name="ActiveBar"
-                                    Height="2" VerticalAlignment="Bottom"
-                                    Background="{StaticResource BrandPrimaryBrush}"
-                                    CornerRadius="2,2,0,0"
-                                    Opacity="0">
-                                <Border.RenderTransform>
-                                    <ScaleTransform x:Name="BarScale" ScaleX="0" CenterX="0.5"/>
-                                </Border.RenderTransform>
-                                <Border.RenderTransformOrigin>0.5,0.5</Border.RenderTransformOrigin>
-                            </Border>
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Grid>
+                    <Border x:Name="Pill" CornerRadius="8"
+                            Background="{TemplateBinding Background}"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
-                            <Trigger.EnterActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="HoverBg"
-                                                         Storyboard.TargetProperty="Opacity"
-                                                         To="1" Duration="0:0:0.15"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </Trigger.EnterActions>
-                            <Trigger.ExitActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="HoverBg"
-                                                         Storyboard.TargetProperty="Opacity"
-                                                         To="0" Duration="0:0:0.2"/>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </Trigger.ExitActions>
+                            <Setter TargetName="Pill" Property="Background" Value="{DynamicResource HoverBrush}"/>
                         </Trigger>
+                        <Trigger Property="IsPressed" Value="True">
+                            <Setter TargetName="Pill" Property="Opacity" Value="0.75"/>
+                        </Trigger>
+                        <!-- Active state driven by Tag="Active" -->
                         <Trigger Property="Tag" Value="Active">
-                            <Setter Property="Foreground" Value="{StaticResource BrandPrimaryBrush}"/>
+                            <Setter Property="Foreground" Value="White"/>
                             <Setter Property="FontWeight" Value="SemiBold"/>
-                            <Trigger.EnterActions>
-                                <BeginStoryboard>
-                                    <Storyboard>
-                                        <DoubleAnimation Storyboard.TargetName="ActiveBar"
-                                                         Storyboard.TargetProperty="Opacity"
-                                                         To="1" Duration="0:0:0.2"/>
-                                        <DoubleAnimation Storyboard.TargetName="BarScale"
-                                                         Storyboard.TargetProperty="ScaleX"
-                                                         To="1" Duration="0:0:0.25">
-                                            <DoubleAnimation.EasingFunction>
-                                                <CubicEase EasingMode="EaseOut"/>
-                                            </DoubleAnimation.EasingFunction>
-                                        </DoubleAnimation>
-                                    </Storyboard>
-                                </BeginStoryboard>
-                            </Trigger.EnterActions>
+                            <Setter TargetName="Pill" Property="Background" Value="{DynamicResource BrandPrimaryBrush}"/>
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -283,7 +245,7 @@
         <Setter Property="Cursor" Value="Hand"/>
         <Style.Triggers>
             <Trigger Property="IsMouseOver" Value="True">
-                <Setter Property="BorderBrush" Value="{StaticResource BrandPrimaryBrush}"/>
+                <Setter Property="BorderBrush" Value="{DynamicResource BrandPrimaryBrush}"/>
                 <Setter Property="Effect">
                     <Setter.Value>
                         <DropShadowEffect Color="#7C3AED" Opacity="0.22" BlurRadius="20" ShadowDepth="0"/>
@@ -397,7 +359,7 @@
     <Style x:Key="DownloadProgress" TargetType="ProgressBar">
         <Setter Property="Height" Value="5"/>
         <Setter Property="Background" Value="{DynamicResource ProgressTrackBrush}"/>
-        <Setter Property="Foreground" Value="{StaticResource BrandPrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrandPrimaryBrush}"/>
         <Setter Property="BorderThickness" Value="0"/>
         <Setter Property="Template">
             <Setter.Value>
@@ -457,7 +419,7 @@
 
     <!-- Slider -->
     <Style TargetType="Slider">
-        <Setter Property="Foreground" Value="{StaticResource BrandPrimaryBrush}"/>
+        <Setter Property="Foreground" Value="{DynamicResource BrandPrimaryBrush}"/>
     </Style>
 
 </ResourceDictionary>

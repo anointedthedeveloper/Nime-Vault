@@ -3,103 +3,92 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              Background="{DynamicResource BackgroundPrimaryBrush}">
 
-    <UserControl.Resources>
-        <Style x:Key="LangBtn" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
-            <Setter Property="Padding" Value="28,10"/>
-        </Style>
-        <Style x:Key="LangBtnActive" TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
-            <Setter Property="Background" Value="{StaticResource BrandPrimaryBrush}"/>
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="Padding" Value="28,10"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect Color="#7C3AED" Opacity="0.4" BlurRadius="12" ShadowDepth="0"/>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </UserControl.Resources>
-
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,0,48">
         <StackPanel>
 
             <!-- Loading -->
             <Border Height="320" Visibility="{Binding IsLoading, Converter={StaticResource BoolToVisibility}}">
-                <TextBlock Text="Loading..." HorizontalAlignment="Center" VerticalAlignment="Center"
+                <TextBlock Text="Loading…" HorizontalAlignment="Center" VerticalAlignment="Center"
                            Foreground="{DynamicResource TextSecondaryBrush}" FontSize="15"/>
             </Border>
 
-            <!-- Content -->
             <StackPanel Visibility="{Binding IsLoading, Converter={StaticResource InverseBoolToVisibility}}">
 
-                <!-- Hero -->
-                <Grid MinHeight="420" Visibility="{Binding Anime, Converter={StaticResource NullToVisibility}}">
+                <!-- ── Hero ──────────────────────────────────────────────── -->
+                <Grid MinHeight="400" ClipToBounds="True"
+                      Visibility="{Binding Anime, Converter={StaticResource NullToVisibility}}">
                     <Border ClipToBounds="True">
-                        <Image Source="{Binding Anime.BackgroundUrl}" Stretch="UniformToFill"
-                               HorizontalAlignment="Center" VerticalAlignment="Top"/>
+                        <Image Stretch="UniformToFill"
+                               HorizontalAlignment="Center" VerticalAlignment="Top">
+                            <Image.Source>
+                                <MultiBinding Converter="{StaticResource BgWithFallback}">
+                                    <Binding Path="Anime.BackgroundUrl"/>
+                                    <Binding Path="Anime.Id"/>
+                                </MultiBinding>
+                            </Image.Source>
+                        </Image>
                     </Border>
-                    <!-- Gradient overlay -->
                     <Border>
                         <Border.Background>
                             <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
-                                <GradientStop Color="#33000000" Offset="0"/>
-                                <GradientStop Color="#F00F1117" Offset="1"/>
+                                <GradientStop Color="#44000000" Offset="0"/>
+                                <GradientStop Color="{DynamicResource BackgroundPrimaryColor}" Offset="1"/>
                             </LinearGradientBrush>
                         </Border.Background>
                     </Border>
 
-                    <!-- Back Button -->
-                    <Button Style="{StaticResource GhostButton}"
-                            Command="{Binding GoBackCommand}"
+                    <!-- Back -->
+                    <Button Style="{StaticResource GhostButton}" Command="{Binding GoBackCommand}"
                             VerticalAlignment="Top" HorizontalAlignment="Left"
-                            Margin="40,18,0,0" Foreground="White">
+                            Margin="40,16,0,0" Foreground="White">
                         <StackPanel Orientation="Horizontal">
-                            <TextBlock Text="←" FontSize="16" Margin="0,0,7,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="←" FontSize="16" Margin="0,0,6,0" VerticalAlignment="Center"/>
                             <TextBlock Text="Back" FontSize="13" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
 
                     <!-- Poster + Info -->
-                    <Grid Margin="40,0,40,32" VerticalAlignment="Bottom">
+                    <Grid Margin="40,0,40,28" VerticalAlignment="Bottom">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border Grid.Column="0" Width="130" Height="182" CornerRadius="10" ClipToBounds="True" Margin="0,0,28,0">
+                        <Border Grid.Column="0" Width="130" Height="182" CornerRadius="10" ClipToBounds="True" Margin="0,0,24,0">
                             <Border.Effect>
                                 <DropShadowEffect Color="Black" Opacity="0.55" BlurRadius="18" ShadowDepth="6"/>
                             </Border.Effect>
-                            <Image Source="{Binding Anime.PosterUrl}" Stretch="UniformToFill"/>
+                            <Image Source="{Binding Anime.PosterUrl, Converter={StaticResource HttpImage}}" Stretch="UniformToFill"/>
                         </Border>
 
                         <StackPanel Grid.Column="1" VerticalAlignment="Bottom">
                             <TextBlock Text="{Binding Anime.Title}" Foreground="White"
-                                       FontSize="32" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,5">
-                                <TextBlock.Effect>
-                                    <DropShadowEffect Color="Black" Opacity="0.4" BlurRadius="6" ShadowDepth="1"/>
-                                </TextBlock.Effect>
+                                       FontSize="30" FontWeight="Bold" TextWrapping="Wrap" Margin="0,0,0,4">
+                                <TextBlock.Effect><DropShadowEffect Color="Black" Opacity="0.4" BlurRadius="6" ShadowDepth="1"/></TextBlock.Effect>
                             </TextBlock>
-                            <TextBlock Text="{Binding Anime.AlternativeTitle}"
-                                       Foreground="#94A3B8" FontSize="14" Margin="0,0,0,10"/>
-                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
-                                <Border CornerRadius="4" Padding="8,3" Margin="0,0,8,0" Background="#22FFFFFF">
-                                    <TextBlock Text="{Binding Anime.Year}" Foreground="#CBD5E1" FontSize="12"/>
+                            <TextBlock Text="{Binding Anime.AlternativeTitle}" Foreground="#94A3B8" FontSize="13" Margin="0,0,0,10"/>
+
+                            <!-- Badge row -->
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
+                                <Border CornerRadius="4" Padding="8,3" Margin="0,0,6,0" Background="#22FFFFFF"
+                                        Visibility="{Binding Anime.AgeRating, Converter={StaticResource StringToVisibility}}">
+                                    <TextBlock Text="{Binding Anime.AgeRating}" Foreground="#F59E0B" FontSize="11" FontWeight="Bold"/>
                                 </Border>
-                                <Border CornerRadius="4" Padding="8,3" Margin="0,0,8,0" Background="#22FFFFFF">
-                                    <TextBlock Text="{Binding Anime.Status}" Foreground="#CBD5E1" FontSize="12"/>
+                                <Border CornerRadius="4" Padding="8,3" Margin="0,0,6,0" Background="#22FFFFFF"
+                                        Visibility="{Binding Anime.Quality, Converter={StaticResource StringToVisibility}}">
+                                    <TextBlock Text="{Binding Anime.Quality}" Foreground="#22C55E" FontSize="11" FontWeight="Bold"/>
                                 </Border>
-                                <Border CornerRadius="4" Padding="8,3" Margin="0,0,8,0" Background="#22F59E0B">
-                                    <TextBlock Text="{Binding Anime.Rating, Converter={StaticResource RatingToStars}}"
-                                               Foreground="#F59E0B" FontSize="12" FontWeight="Bold"/>
+                                <Border CornerRadius="4" Padding="8,3" Margin="0,0,6,0" Background="#22FFFFFF"
+                                        Visibility="{Binding Anime.AnimeType, Converter={StaticResource StringToVisibility}}">
+                                    <TextBlock Text="{Binding Anime.AnimeType}" Foreground="#CBD5E1" FontSize="11"/>
                                 </Border>
-                                <Border CornerRadius="4" Padding="8,3" Background="#22FFFFFF">
-                                    <TextBlock Text="{Binding Anime.TotalEpisodes, StringFormat='{}{0} Episodes'}"
-                                               Foreground="#CBD5E1" FontSize="12"/>
+                                <Border CornerRadius="4" Padding="8,3" Margin="0,0,6,0" Background="#22F59E0B"
+                                        Visibility="{Binding Anime.Rating, Converter={StaticResource NonZeroToVisibility}}">
+                                    <TextBlock Text="{Binding Anime.Rating, StringFormat='★ {0:F1}'}" Foreground="#F59E0B" FontSize="11" FontWeight="Bold"/>
+                                </Border>
+                                <Border CornerRadius="4" Padding="8,3" Background="#22FFFFFF"
+                                        Visibility="{Binding Anime.Status, Converter={StaticResource StringToVisibility}}">
+                                    <TextBlock Text="{Binding Anime.Status}" Foreground="#CBD5E1" FontSize="11"/>
                                 </Border>
                             </StackPanel>
                             <TextBlock Text="{Binding Anime.Genres, Converter={StaticResource GenreListToString}}"
@@ -108,44 +97,39 @@
                     </Grid>
                 </Grid>
 
-                <!-- Details Section -->
-                <Grid Margin="40,28,40,0">
+                <!-- ── Details ────────────────────────────────────────────── -->
+                <Grid Margin="40,24,40,0">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="280"/>
+                        <ColumnDefinition Width="260"/>
                     </Grid.ColumnDefinitions>
 
-                    <!-- Left Column -->
-                    <StackPanel Grid.Column="0" Margin="0,0,32,0">
+                    <!-- Left -->
+                    <StackPanel Grid.Column="0" Margin="0,0,28,0">
 
-                        <!-- About -->
-                        <TextBlock Text="About" FontSize="17" FontWeight="Bold"
+                        <!-- Synopsis -->
+                        <TextBlock Text="Synopsis" FontSize="16" FontWeight="Bold"
+                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,8"/>
+                        <TextBlock Text="{Binding Anime.Description}" Style="{StaticResource BodyText}" Margin="0,0,0,28"/>
+
+                        <!-- Language -->
+                        <TextBlock Text="Language" FontSize="14" FontWeight="Bold"
                                    Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,10"/>
-                        <TextBlock Text="{Binding Anime.Description}" Style="{StaticResource BodyText}" Margin="0,0,0,32"/>
-
-                        <!-- Language Selection -->
-                        <TextBlock Text="Language" FontSize="15" FontWeight="Bold"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,12"/>
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,32">
-                            <Button Margin="0,0,10,0" Command="{Binding SelectSubCommand}">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,28">
+                            <Button Margin="0,0,8,0" Command="{Binding SelectSubCommand}">
                                 <Button.Style>
                                     <Style TargetType="Button" BasedOn="{StaticResource BaseButtonStyle}">
                                         <Setter Property="Background" Value="Transparent"/>
                                         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                         <Setter Property="BorderThickness" Value="1"/>
                                         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
-                                        <Setter Property="Padding" Value="28,10"/>
+                                        <Setter Property="Padding" Value="24,9"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsSubSelected}" Value="True">
                                                 <Setter Property="Background" Value="{StaticResource BrandPrimaryBrush}"/>
                                                 <Setter Property="Foreground" Value="White"/>
                                                 <Setter Property="BorderBrush" Value="{StaticResource BrandPrimaryBrush}"/>
                                                 <Setter Property="FontWeight" Value="SemiBold"/>
-                                                <Setter Property="Effect">
-                                                    <Setter.Value>
-                                                        <DropShadowEffect Color="#7C3AED" Opacity="0.4" BlurRadius="12" ShadowDepth="0"/>
-                                                    </Setter.Value>
-                                                </Setter>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -159,18 +143,13 @@
                                         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}"/>
                                         <Setter Property="BorderThickness" Value="1"/>
                                         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}"/>
-                                        <Setter Property="Padding" Value="28,10"/>
+                                        <Setter Property="Padding" Value="24,9"/>
                                         <Style.Triggers>
                                             <DataTrigger Binding="{Binding IsDubSelected}" Value="True">
                                                 <Setter Property="Background" Value="{StaticResource BrandSecondaryBrush}"/>
                                                 <Setter Property="Foreground" Value="White"/>
                                                 <Setter Property="BorderBrush" Value="{StaticResource BrandSecondaryBrush}"/>
                                                 <Setter Property="FontWeight" Value="SemiBold"/>
-                                                <Setter Property="Effect">
-                                                    <Setter.Value>
-                                                        <DropShadowEffect Color="#EC4899" Opacity="0.4" BlurRadius="12" ShadowDepth="0"/>
-                                                    </Setter.Value>
-                                                </Setter>
                                             </DataTrigger>
                                         </Style.Triggers>
                                     </Style>
@@ -179,18 +158,40 @@
                             </Button>
                         </StackPanel>
 
-                        <!-- Episodes -->
-                        <TextBlock Text="Episodes" FontSize="17" FontWeight="Bold"
-                                   Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,14"/>
+                        <!-- Episodes header + pagination -->
+                        <Grid Margin="0,0,0,12">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="Episodes" FontSize="16" FontWeight="Bold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding PageLabel}" Foreground="{DynamicResource TextSecondaryBrush}"
+                                           FontSize="12" Margin="12,0,0,0" VerticalAlignment="Center"/>
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                <Button Style="{StaticResource SmallButton}" Command="{Binding PrevPageCommand}"
+                                        Background="Transparent" Foreground="{StaticResource BrandPrimaryBrush}"
+                                        BorderBrush="{StaticResource BrandPrimaryBrush}" BorderThickness="1"
+                                        Margin="0,0,6,0" IsEnabled="{Binding CanPrevPage}">
+                                    <TextBlock Text="← Prev" FontSize="11"/>
+                                </Button>
+                                <Button Style="{StaticResource SmallButton}" Command="{Binding NextPageCommand}"
+                                        Background="Transparent" Foreground="{StaticResource BrandPrimaryBrush}"
+                                        BorderBrush="{StaticResource BrandPrimaryBrush}" BorderThickness="1"
+                                        IsEnabled="{Binding CanNextPage}">
+                                    <TextBlock Text="Next →" FontSize="11"/>
+                                </Button>
+                            </StackPanel>
+                        </Grid>
 
+                        <!-- Episode list -->
                         <ItemsControl ItemsSource="{Binding Episodes}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border Style="{StaticResource HoverCardStyle}" Margin="0,0,0,7" Padding="18,13">
+                                    <Border Style="{StaticResource HoverCardStyle}" Margin="0,0,0,6" Padding="16,11">
                                         <Grid>
                                             <Grid.ColumnDefinitions>
-                                                <ColumnDefinition Width="48"/>
+                                                <ColumnDefinition Width="44"/>
                                                 <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="Auto"/>
                                                 <ColumnDefinition Width="Auto"/>
@@ -199,79 +200,145 @@
                                             <TextBlock Grid.Column="0"
                                                        Text="{Binding Number, StringFormat='{}{0:D2}'}"
                                                        Foreground="{StaticResource BrandPrimaryBrush}"
-                                                       FontSize="15" FontWeight="Bold" VerticalAlignment="Center"/>
+                                                       FontSize="14" FontWeight="Bold" VerticalAlignment="Center"/>
 
                                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                 <TextBlock Text="{Binding Title}"
                                                            Foreground="{DynamicResource TextPrimaryBrush}"
-                                                           FontSize="13" FontWeight="SemiBold"/>
+                                                           FontSize="13" FontWeight="SemiBold"
+                                                           TextTrimming="CharacterEllipsis"/>
                                                 <TextBlock Text="{Binding Duration}"
                                                            Foreground="{DynamicResource TextSecondaryBrush}"
-                                                           FontSize="11" Margin="0,3,0,0"/>
+                                                           FontSize="11" Margin="0,2,0,0"/>
                                             </StackPanel>
 
-                                            <StackPanel Grid.Column="2" Orientation="Horizontal"
-                                                        VerticalAlignment="Center" Margin="12,0">
-                                                <Border Style="{StaticResource SubBadge}"
+                                            <!-- CC / DUB badges -->
+                                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0">
+                                                <Border CornerRadius="4" Padding="6,2" Margin="0,0,4,0" Background="{DynamicResource CardBackgroundBrush}"
                                                         Visibility="{Binding HasSub, Converter={StaticResource BoolToVisibility}}">
-                                                    <TextBlock Text="SUB" FontSize="10" FontWeight="Bold" Foreground="#7C3AED"/>
+                                                    <TextBlock Text="CC" FontSize="10" FontWeight="Bold" Foreground="#7C3AED"/>
                                                 </Border>
-                                                <Border Style="{StaticResource DubBadge}"
+                                                <Border CornerRadius="4" Padding="6,2" Background="{DynamicResource CardBackgroundBrush}"
                                                         Visibility="{Binding HasDub, Converter={StaticResource BoolToVisibility}}">
                                                     <TextBlock Text="DUB" FontSize="10" FontWeight="Bold" Foreground="#EC4899"/>
                                                 </Border>
                                             </StackPanel>
 
-                                            <Button Grid.Column="3"
-                                                    Style="{StaticResource SmallButton}"
-                                                    Background="Transparent"
-                                                    Foreground="{StaticResource BrandPrimaryBrush}"
-                                                    BorderBrush="{StaticResource BrandPrimaryBrush}"
-                                                    BorderThickness="1"
+                                            <!-- + Queue -->
+                                            <Button Grid.Column="3" Style="{StaticResource SmallButton}"
+                                                    Background="Transparent" Foreground="{StaticResource BrandPrimaryBrush}"
+                                                    BorderBrush="{StaticResource BrandPrimaryBrush}" BorderThickness="1"
                                                     Command="{Binding DataContext.AddEpisodeToQueueCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding}"
-                                                    Margin="0,0,8,0">
+                                                    CommandParameter="{Binding}" Margin="0,0,6,0">
                                                 <TextBlock Text="+ Queue" FontSize="11"/>
                                             </Button>
 
-                                            <Button Grid.Column="4"
-                                                    Style="{StaticResource SmallButton}"
+                                            <!-- Watch -->
+                                            <Button Grid.Column="4" Style="{StaticResource SmallButton}"
+                                                    Background="#1A7C3AED" Foreground="#A78BFA"
+                                                    BorderBrush="#7C3AED" BorderThickness="1"
+                                                    Command="{Binding DataContext.WatchEpisodeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                    CommandParameter="{Binding}" Margin="0,0,6,0">
+                                                <TextBlock Text="▶ Watch" FontSize="11"/>
+                                            </Button>
+
+                                            <!-- Download -->
+                                            <Button Grid.Column="5" Style="{StaticResource SmallButton}"
                                                     Command="{Binding DataContext.DownloadEpisodeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                     CommandParameter="{Binding}">
-                                                <TextBlock Text="Download" FontSize="11"/>
+                                                <TextBlock Text="↓ Save" FontSize="11"/>
                                             </Button>
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
                             </ItemsControl.ItemTemplate>
                         </ItemsControl>
+
+                        <!-- Bottom pagination -->
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,16,0,0"
+                                    Visibility="{Binding TotalPages, Converter={StaticResource NonZeroToVisibility}}">
+                            <Button Style="{StaticResource SecondaryButton}" Command="{Binding PrevPageCommand}"
+                                    IsEnabled="{Binding CanPrevPage}" Margin="0,0,8,0">
+                                <TextBlock Text="← Previous"/>
+                            </Button>
+                            <Border CornerRadius="6" Padding="14,8" Background="{DynamicResource CardBackgroundBrush}"
+                                    BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1">
+                                <TextBlock Text="{Binding PageLabel}" Foreground="{DynamicResource TextPrimaryBrush}" FontSize="13"/>
+                            </Border>
+                            <Button Style="{StaticResource SecondaryButton}" Command="{Binding NextPageCommand}"
+                                    IsEnabled="{Binding CanNextPage}" Margin="8,0,0,0">
+                                <TextBlock Text="Next →"/>
+                            </Button>
+                        </StackPanel>
                     </StackPanel>
 
-                    <!-- Right Panel -->
+                    <!-- Right panel -->
                     <StackPanel Grid.Column="1" VerticalAlignment="Top">
-                        <Border Style="{StaticResource CardStyle}" Padding="22">
+                        <Border Style="{StaticResource CardStyle}" Padding="20">
                             <StackPanel>
-                                <TextBlock Text="Quick Actions" FontSize="15" FontWeight="Bold"
-                                           Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,18"/>
-                                <Button Style="{StaticResource PrimaryButton}" Margin="0,0,0,10"
-                                        HorizontalAlignment="Stretch"
+                                <TextBlock Text="Info" FontSize="14" FontWeight="Bold"
+                                           Foreground="{DynamicResource TextPrimaryBrush}" Margin="0,0,0,14"/>
+
+                                <!-- Score -->
+                                <StackPanel Margin="0,0,0,10"
+                                            Visibility="{Binding Anime.Rating, Converter={StaticResource NonZeroToVisibility}}">
+                                    <TextBlock Text="SCORE" FontSize="10" FontWeight="Bold"
+                                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,3"/>
+                                    <TextBlock Text="{Binding Anime.Rating, StringFormat='★ {0:F2}'}"
+                                               FontSize="20" FontWeight="Bold" Foreground="#F59E0B"/>
+                                </StackPanel>
+
+                                <Separator Style="{StaticResource HrSeparator}" Margin="0,0,0,10"/>
+
+                                <!-- Aired -->
+                                <StackPanel Margin="0,0,0,8"
+                                            Visibility="{Binding Anime.Aired, Converter={StaticResource StringToVisibility}}">
+                                    <TextBlock Text="AIRED" FontSize="10" FontWeight="Bold"
+                                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                                    <TextBlock Text="{Binding Anime.Aired}" FontSize="12"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+
+                                <!-- Duration -->
+                                <StackPanel Margin="0,0,0,8"
+                                            Visibility="{Binding Anime.Duration, Converter={StaticResource StringToVisibility}}">
+                                    <TextBlock Text="DURATION" FontSize="10" FontWeight="Bold"
+                                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                                    <TextBlock Text="{Binding Anime.Duration}" FontSize="12"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                </StackPanel>
+
+                                <!-- Studio -->
+                                <StackPanel Margin="0,0,0,8"
+                                            Visibility="{Binding Anime.Studio, Converter={StaticResource StringToVisibility}}">
+                                    <TextBlock Text="STUDIO" FontSize="10" FontWeight="Bold"
+                                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                                    <TextBlock Text="{Binding Anime.Studio}" FontSize="12"
+                                               Foreground="{DynamicResource TextPrimaryBrush}" TextWrapping="Wrap"/>
+                                </StackPanel>
+
+                                <!-- Episodes total -->
+                                <StackPanel Margin="0,0,0,8">
+                                    <TextBlock Text="EPISODES" FontSize="10" FontWeight="Bold"
+                                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                                    <TextBlock Text="{Binding Anime.TotalEpisodes}" FontSize="20" FontWeight="Bold"
+                                               Foreground="{DynamicResource TextPrimaryBrush}"/>
+                                </StackPanel>
+
+                                <!-- Language -->
+                                <StackPanel Margin="0,0,0,8">
+                                    <TextBlock Text="SELECTED LANGUAGE" FontSize="10" FontWeight="Bold"
+                                               Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,0,0,2"/>
+                                    <TextBlock Text="{Binding SelectedLanguage}" FontSize="20" FontWeight="Bold"
+                                               Foreground="{StaticResource BrandPrimaryBrush}"/>
+                                </StackPanel>
+
+                                <Separator Style="{StaticResource HrSeparator}" Margin="0,4,0,14"/>
+
+                                <Button Style="{StaticResource PrimaryButton}" HorizontalAlignment="Stretch"
                                         Command="{Binding AddAllToQueueCommand}">
-                                    <TextBlock Text="+ Add All to Queue" FontSize="13"/>
+                                    <TextBlock Text="+ Add All to Queue" FontSize="12"/>
                                 </Button>
-                                <Separator Style="{StaticResource HrSeparator}" Margin="0,14"/>
-                                <TextBlock Text="SELECTED LANGUAGE" FontSize="10" FontWeight="Bold"
-                                           Foreground="{DynamicResource TextSecondaryBrush}"
-                                           Margin="0,0,0,8"/>
-                                <TextBlock Text="{Binding SelectedLanguage}"
-                                           FontSize="22" FontWeight="Bold"
-                                           Foreground="{StaticResource BrandPrimaryBrush}"/>
-                                <Separator Style="{StaticResource HrSeparator}" Margin="0,14"/>
-                                <TextBlock Text="TOTAL EPISODES" FontSize="10" FontWeight="Bold"
-                                           Foreground="{DynamicResource TextSecondaryBrush}"
-                                           Margin="0,0,0,8"/>
-                                <TextBlock Text="{Binding Anime.TotalEpisodes}"
-                                           FontSize="22" FontWeight="Bold"
-                                           Foreground="{DynamicResource TextPrimaryBrush}"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
@@ -279,7 +346,6 @@
 
                 <Border Height="40"/>
             </StackPanel>
-
         </StackPanel>
     </ScrollViewer>
 </UserControl>

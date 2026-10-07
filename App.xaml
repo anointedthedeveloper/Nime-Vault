@@ -19,8 +19,12 @@
             <conv:DownloadStatusToColorConverter   x:Key="DownloadStatusToColor"/>
             <conv:DownloadStatusToTextConverter    x:Key="DownloadStatusToText"/>
             <conv:NullToVisibilityConverter        x:Key="NullToVisibility"/>
+            <conv:NonZeroToVisibilityConverter     x:Key="NonZeroToVisibility"/>
             <conv:BoolToActiveNavConverter         x:Key="BoolToActiveNav"/>
             <conv:ThemeToggleTipConverter          x:Key="ThemeToggleTip"/>
+            <conv:EqualityConverter               x:Key="EqualityToVisibility"/>
+            <conv:HttpImageConverter              x:Key="HttpImage"/>
+            <conv:BgWithFallbackConverter          x:Key="BgWithFallback"/>
 
             <!-- Shared shadow effect (used by toast cards, posters, etc.) -->
             <DropShadowEffect x:Key="ToastShadow"

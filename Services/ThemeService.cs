@@ -43,28 +43,34 @@ namespace NimeVault.Services
             var app = Application.Current;
             if (app == null) return;
 
-            // Find and remove existing theme dict
+            // Find index of existing theme dict
+            int existingIndex = -1;
             ResourceDictionary? existing = null;
-            foreach (ResourceDictionary rd in app.Resources.MergedDictionaries)
+            for (int i = 0; i < app.Resources.MergedDictionaries.Count; i++)
             {
-                var src = rd.Source?.ToString() ?? "";
+                var src = app.Resources.MergedDictionaries[i].Source?.ToString() ?? "";
                 if (src.Contains("LightTheme") || src.Contains("DarkTheme"))
                 {
-                    existing = rd;
+                    existing = app.Resources.MergedDictionaries[i];
+                    existingIndex = i;
                     break;
                 }
             }
-            if (existing != null)
-                app.Resources.MergedDictionaries.Remove(existing);
 
-            string path = dark
-                ? "Resources/Themes/DarkTheme.xaml"
-                : "Resources/Themes/LightTheme.xaml";
-
-            app.Resources.MergedDictionaries.Add(new ResourceDictionary
+            var newDict = new ResourceDictionary
             {
-                Source = new Uri($"pack://application:,,,/{path}", UriKind.Absolute)
-            });
+                Source = new Uri($"pack://application:,,,/Resources/Themes/{(dark ? "Dark" : "Light")}Theme.xaml", UriKind.Absolute)
+            };
+
+            if (existing != null)
+            {
+                // Replace in-place to keep ordering
+                app.Resources.MergedDictionaries[existingIndex] = newDict;
+            }
+            else
+            {
+                app.Resources.MergedDictionaries.Add(newDict);
+            }
         }
 
         public static bool IsSystemDarkMode()
